@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cat <<'EOF'
+herdr is a terminal-based multiplexer for running coding agents:
+run all your coding agents from one terminal, on any box, even over ssh.
+
+https://herdr.dev
+EOF
