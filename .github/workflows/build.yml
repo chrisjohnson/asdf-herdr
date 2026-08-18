@@ -14,9 +14,23 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+        arch:
+          - x64
+          - arm64
     runs-on: ${{ matrix.os }}
     steps:
-      - name: asdf_plugin_test
-        uses: asdf-vm/actions/plugin-test@v4
-        with:
-          command: "herdr --version"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup asdf
+        uses: asdf-vm/actions/install@v4
+
+      - name: Install herdr
+        run: |
+          asdf install herdr latest
+          asdf global herdr latest
+
+      - name: Verify installation
+        run: |
+          herdr --version
+          asdf list herdr

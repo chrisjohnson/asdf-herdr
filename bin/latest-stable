@@ -6,7 +6,7 @@ current_script_path=${BASH_SOURCE[0]}
 plugin_dir=$(dirname "$(dirname "$current_script_path")")
 
 # shellcheck source=../lib/utils.bash
-. "${plugin_dir}/lib/utils.bash"
+source "${plugin_dir}/lib/utils.bash"
 
 curl_opts=(-sI)
 
@@ -17,13 +17,24 @@ fi
 # curl of REPO/releases/latest is expected to be a 302 to another URL
 # when no releases redirect_url="REPO/releases"
 # when there are releases redirect_url="REPO/releases/tag/v<VERSION>"
-redirect_url=$(curl "${curl_opts[@]}" "$GH_REPO/releases/latest" | sed -n -e "s|^location: *||p" | sed -n -e "s|\r||p")
-version=
+redirect_url=$(curl "${curl_opts[@]}" "$GH_REPO/releases/latest" 2>/dev/null | sed -n -e "s|^location: *||p" | sed -n -e "s|\r||p")
+
+if [ -z "$redirect_url" ]; then
+	fail "Could not resolve latest release from GitHub"
+fi
+
 printf "redirect url: %s\n" "$redirect_url" >&2
+
 if [[ "$redirect_url" == "$GH_REPO/releases" ]]; then
-	version="$(list_all_versions | sort_versions | tail -n1 | xargs echo)"
+	version="$(list_all_versions | tail -n1)"
+	if [ -z "$version" ]; then
+		fail "No stable versions found"
+	fi
 else
 	version="$(printf "%s\n" "$redirect_url" | sed 's|.*/tag/v\{0,1\}||')"
+	if [ -z "$version" ]; then
+		fail "Could not parse version from redirect URL"
+	fi
 fi
 
 printf "%s\n" "$version"

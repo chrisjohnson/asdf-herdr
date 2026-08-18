@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: shellcheck
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Run shellcheck
         run: shellcheck --shell=bash --external-sources bin/* lib/*
 
   actionlint:
@@ -22,3 +24,23 @@ jobs:
         uses: docker://rhysd/actionlint:1.6.23
         with:
           args: -color
+
+  validate:
+    name: Validate plugin structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check plugin.toml exists
+        run: test -f plugin.toml
+      - name: Check bin scripts are executable
+        run: |
+          for script in bin/*; do
+            if [ -f "$script" ] && [[ ! "$script" == *.yml ]]; then
+              test -x "$script" || exit 1
+            fi
+          done
+      - name: Validate TOML syntax
+        run: |
+          if command -v python3 &>/dev/null; then
+            python3 -c "import tomllib; tomllib.load(open('plugin.toml', 'rb'))"
+          fi

@@ -8,9 +8,34 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
+if [ -z "${ASDF_INSTALL_VERSION:-}" ]; then
+	fail "ASDF_INSTALL_VERSION is not set"
+fi
+
+if [ -z "${ASDF_DOWNLOAD_PATH:-}" ]; then
+	fail "ASDF_DOWNLOAD_PATH is not set"
+fi
+
 mkdir -p "$ASDF_DOWNLOAD_PATH/bin"
 
 binary_path="$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME"
 
-download_release "$ASDF_INSTALL_VERSION" "$binary_path"
+download_release "$ASDF_INSTALL_VERSION" "$binary_path" || fail "Could not download herdr $ASDF_INSTALL_VERSION for $(get_platform)-$(get_arch)"
+
 chmod +x "$binary_path"
+
+# Verify the downloaded file is executable and not empty
+if [ ! -s "$binary_path" ]; then
+	fail "Downloaded binary is empty"
+fi
+
+# Optional checksum verification (if CHECKSUM env var is set)
+if [ -n "${CHECKSUM:-}" ]; then
+	echo "Verifying checksum..."
+	expected_hash=$(echo "$CHECKSUM" | awk '{print $1}')
+	actual_hash=$(sha256sum "$binary_path" | awk '{print $1}')
+	if [ "$expected_hash" != "$actual_hash" ]; then
+		fail "Checksum mismatch: expected $expected_hash, got $actual_hash"
+	fi
+	echo "Checksum verified successfully"
+fi

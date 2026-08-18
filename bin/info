@@ -4,8 +4,10 @@ set -euo pipefail
 
 current_script_path=${BASH_SOURCE[0]}
 plugin_dir=$(dirname "$(dirname "$current_script_path")")
-
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
-list_all_versions
+echo "herdr version: $(herdr --version 2>/dev/null || echo 'not installed')"
+echo "install path: $ASDF_INSTALL_PATH"
+echo "download path: $ASDF_DOWNLOAD_PATH"
+echo "platform: $(get_platform)-$(get_arch)"

@@ -1,0 +1,5 @@
+name = "herdr"
+description = "asdf plugin for herdr"
+repository = "https://github.com/ogulcancelik/herdr"
+extensions = []
+aliases = {}

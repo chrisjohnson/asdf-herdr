@@ -4,12 +4,15 @@
 
 [herdr](https://herdr.dev) plugin for the [asdf version manager](https://asdf-vm.com).
 
+Compatible with asdf 0.17.0+.
+
 </div>
 
 # Contents
 
 - [Dependencies](#dependencies)
 - [Install](#install)
+- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -47,9 +50,37 @@ herdr --version
 Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to
 install & manage versions.
 
+# Usage
+
+```shell
+# Show installed versions
+asdf list herdr
+
+# Show current version
+asdf current herdr
+
+# Switch to a different version
+asdf local herdr <version>
+
+# Uninstall a version
+asdf uninstall herdr <version>
+```
+
 # Contributing
 
 Contributions of any kind welcome!
+
+## Development
+
+1. Clone this repository
+2. Make changes
+3. Test with:
+   ```shell
+   asdf plugin remove herdr
+   asdf plugin add herdr /path/to/cloned/repo
+   asdf install herdr latest
+   herdr --version
+   ```
 
 # License
 

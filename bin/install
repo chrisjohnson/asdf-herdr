@@ -8,4 +8,16 @@ plugin_dir=$(dirname "$(dirname "$current_script_path")")
 # shellcheck source=../lib/utils.bash
 source "${plugin_dir}/lib/utils.bash"
 
-install_version "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
+if [ -z "${ASDF_INSTALL_TYPE:-}" ]; then
+	fail "ASDF_INSTALL_TYPE is not set"
+fi
+
+if [ -z "${ASDF_INSTALL_VERSION:-}" ]; then
+	fail "ASDF_INSTALL_VERSION is not set"
+fi
+
+if [ -z "${ASDF_INSTALL_PATH:-}" ]; then
+	fail "ASDF_INSTALL_PATH is not set"
+fi
+
+install_version "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH" || fail "Installation failed for herdr $ASDF_INSTALL_VERSION"
