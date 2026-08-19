@@ -24,9 +24,9 @@ jobs:
       - name: Setup asdf
         run: |
           set -e
-          git clone --depth 1 --branch v0.20.0 https://github.com/asdf-vm/asdf.git ${{ env.ASDF_DIR }}
-          echo "${{ env.ASDF_DIR }}/bin" >> $GITHUB_PATH
-          echo "${{ env.ASDF_DIR }}/shims" >> $GITHUB_PATH
+          git clone --depth 1 --branch v0.20.0 https://github.com/asdf-vm/asdf.git $ASDF_DIR
+          echo "$ASDF_DIR/bin" >> $GITHUB_PATH
+          echo "$ASDF_DIR/shims" >> $GITHUB_PATH
           asdf --version
 
       - name: Add herdr plugin
