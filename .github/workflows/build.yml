@@ -50,10 +50,10 @@ jobs:
         run: asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
 
       - name: Install herdr latest
-        run: asdf install herdr latest
+        run: asdf install herdr 0.8.2
 
       - name: Set herdr version
-        run: asdf set herdr "$(asdf list herdr --short | tail -1)"
+        run: asdf set herdr 0.8.2
 
       - name: Verify herdr
         run: |
