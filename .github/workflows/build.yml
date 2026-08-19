@@ -20,12 +20,9 @@ jobs:
 
       - name: Install asdf
         uses: asdf-vm/actions/install@v4
-
-      - name: Add herdr plugin
-        run: asdf plugin add herdr https://github.com/ogulcancelik/herdr
-
-      - name: Install herdr latest
-        run: asdf install herdr latest
+        with:
+          tool_versions: |
+            herdr latest
 
       - name: Verify herdr
         run: herdr --version
