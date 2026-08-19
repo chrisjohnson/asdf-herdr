@@ -26,7 +26,6 @@ jobs:
           set -e
           ASDF_ARCH="amd64"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            # Check if it's ARM (M1/M2)
             if uname -m | grep -q arm64; then
               ASDF_ARCH="arm64"
             fi
@@ -54,4 +53,11 @@ jobs:
         run: asdf install herdr latest
 
       - name: Verify herdr
-        run: herdr --version
+        run: |
+          echo "PATH=$PATH"
+          echo "which herdr: $(which herdr 2>&1 || echo 'not found')"
+          echo "asdf shim path: ${{ env.ASDF_DIR }}/shims/herdr"
+          ls -la ${{ env.ASDF_DIR }}/shims/herdr 2>&1 || echo "shim not found"
+          echo "Running herdr --version..."
+          herdr --version
+          echo "Verification successful"
