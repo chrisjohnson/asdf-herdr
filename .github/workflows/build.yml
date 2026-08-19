@@ -24,9 +24,21 @@ jobs:
       - name: Download asdf binary
         run: |
           set -e
-          curl -sSL https://github.com/asdf-vm/asdf/releases/download/v0.20.0/asdf-v0.20.0-${{ runner.os == 'Linux' && 'linux' || 'darwin' }}-${{ runner.arch == 'X64' && 'amd64' || 'arm64' }}.tar.gz -o asdf.tar.gz
+          ASDF_ARCH="amd64"
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            # Check if it's ARM (M1/M2)
+            if uname -m | grep -q arm64; then
+              ASDF_ARCH="arm64"
+            fi
+            ASDF_PLATFORM="darwin"
+          else
+            ASDF_PLATFORM="linux"
+          fi
+          echo "Downloading asdf for ${ASDF_PLATFORM}-${ASDF_ARCH}..."
+          curl -sSL "https://github.com/asdf-vm/asdf/releases/download/v0.20.0/asdf-v0.20.0-${ASDF_PLATFORM}-${ASDF_ARCH}.tar.gz" -o asdf.tar.gz
           tar -xzf asdf.tar.gz
           chmod +x asdf
+          mkdir -p ${{ env.ASDF_DIR }}/bin
           mv asdf ${{ env.ASDF_DIR }}/bin/asdf
 
       - name: Setup asdf
