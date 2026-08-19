@@ -14,12 +14,35 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+    env:
+      ASDF_DIR: ${{ github.workspace }}/.asdf
+      ASDF_DATA_DIR: ${{ github.workspace }}/.asdf
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: asdf plugin test
-        uses: asdf-vm/actions/plugin-test@v4
-        with:
-          command: "herdr --version"
-          asdf_version: "0.19.0"
+      - name: Setup asdf
+        run: |
+          set -e
+          git clone --depth 1 --branch v0.20.0 https://github.com/asdf-vm/asdf.git ${{ env.ASDF_DIR }}
+          echo "${{ env.ASDF_DIR }}/bin" >> $GITHUB_PATH
+          echo "${{ env.ASDF_DIR }}/shims" >> $GITHUB_PATH
+          asdf --version
+
+      - name: Add herdr plugin
+        run: |
+          echo "Adding herdr plugin..."
+          asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
+          echo "Plugin added successfully"
+
+      - name: Install herdr latest
+        run: |
+          echo "Installing herdr latest..."
+          asdf install herdr latest
+          echo "Installation complete"
+
+      - name: Verify herdr
+        run: |
+          echo "Verifying herdr..."
+          herdr --version
+          echo "Verification successful"
