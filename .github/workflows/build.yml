@@ -2,8 +2,7 @@ name: Build
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
 
 jobs:
@@ -16,7 +15,17 @@ jobs:
           - ubuntu-latest
           - macos-latest
     steps:
-      - name: asdf_plugin_test
-        uses: asdf-vm/actions/plugin-test@v4
-        with:
-          command: "herdr --version"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install asdf
+        uses: asdf-vm/actions/install@v4
+
+      - name: Add herdr plugin
+        run: asdf plugin add herdr https://github.com/ogulcancelik/herdr
+
+      - name: Install herdr latest
+        run: asdf install herdr latest
+
+      - name: Verify herdr
+        run: herdr --version
