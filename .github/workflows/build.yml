@@ -21,28 +21,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup asdf
+      - name: Download asdf binary
         run: |
           set -e
-          git clone --depth 1 --branch v0.20.0 https://github.com/asdf-vm/asdf.git $ASDF_DIR
-          echo "$ASDF_DIR/bin" >> $GITHUB_PATH
-          echo "$ASDF_DIR/shims" >> $GITHUB_PATH
-          asdf --version
+          curl -sSL https://github.com/asdf-vm/asdf/releases/download/v0.20.0/asdf-v0.20.0-${{ runner.os == 'Linux' && 'linux' || 'darwin' }}-${{ runner.arch == 'X64' && 'amd64' || 'arm64' }}.tar.gz -o asdf.tar.gz
+          tar -xzf asdf.tar.gz
+          chmod +x asdf
+          mv asdf ${{ env.ASDF_DIR }}/bin/asdf
+
+      - name: Setup asdf
+        run: |
+          echo "${{ env.ASDF_DIR }}/bin" >> $GITHUB_PATH
+          echo "${{ env.ASDF_DIR }}/shims" >> $GITHUB_PATH
+          ${{ env.ASDF_DIR }}/bin/asdf --version
 
       - name: Add herdr plugin
-        run: |
-          echo "Adding herdr plugin..."
-          asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
-          echo "Plugin added successfully"
+        run: asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
 
       - name: Install herdr latest
-        run: |
-          echo "Installing herdr latest..."
-          asdf install herdr latest
-          echo "Installation complete"
+        run: asdf install herdr latest
 
       - name: Verify herdr
-        run: |
-          echo "Verifying herdr..."
-          herdr --version
-          echo "Verification successful"
+        run: herdr --version
