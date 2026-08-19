@@ -14,7 +14,7 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
       - name: Run shellcheck
-        run: shellcheck --shell=bash --external-sources bin/* lib/*
+        run: shellcheck --shell=bash --external-sources --source-path=SCRIPTDIR bin/* lib/*
 
   actionlint:
     runs-on: ubuntu-latest
