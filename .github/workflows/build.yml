@@ -18,11 +18,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install asdf
-        uses: asdf-vm/actions/install@v4
-        with:
-          tool_versions: |
-            herdr latest
+      - name: Setup asdf
+        run: |
+          set -e
+          ASDF_DIR=$HOME/.asdf
+          git clone --depth 1 --branch v0.20.0 https://github.com/asdf-vm/asdf.git $ASDF_DIR
+          echo "export ASDF_DIR=$HOME/.asdf" >> $HOME/.bashrc
+          echo "export PATH=$ASDF_DIR/bin:$ASDF_DIR/shims:$PATH" >> $HOME/.bashrc
+          source $HOME/.bashrc
+
+      - name: Add herdr plugin
+        run: asdf plugin add herdr https://github.com/ogulcancelik/herdr
+
+      - name: Install herdr latest
+        run: asdf install herdr latest
 
       - name: Verify herdr
         run: herdr --version
