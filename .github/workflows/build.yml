@@ -28,7 +28,7 @@ jobs:
           source $HOME/.bashrc
 
       - name: Add herdr plugin
-        run: asdf plugin add herdr https://github.com/ogulcancelik/herdr
+        run: asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
 
       - name: Install herdr latest
         run: asdf install herdr latest
