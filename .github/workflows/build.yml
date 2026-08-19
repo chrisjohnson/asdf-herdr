@@ -53,7 +53,7 @@ jobs:
         run: asdf install herdr latest
 
       - name: Set herdr version
-        run: asdf global herdr latest
+        run: asdf set herdr $(asdf list herdr --short | tail -1)
 
       - name: Verify herdr
         run: |
