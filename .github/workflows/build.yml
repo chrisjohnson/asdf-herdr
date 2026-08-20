@@ -14,18 +14,53 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+    env:
+      ASDF_DIR: ${{ github.workspace }}/.asdf
+      ASDF_DATA_DIR: ${{ github.workspace }}/.asdf
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install asdf
-        uses: asdf-vm/actions/install@v4
+      - name: Download asdf binary
+        run: |
+          set -e
+          ASDF_ARCH="amd64"
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            if uname -m | grep -q arm64; then
+              ASDF_ARCH="arm64"
+            fi
+            ASDF_PLATFORM="darwin"
+          else
+            ASDF_PLATFORM="linux"
+          fi
+          echo "Downloading asdf for ${ASDF_PLATFORM}-${ASDF_ARCH}..."
+          curl -sSL "https://github.com/asdf-vm/asdf/releases/download/v0.20.0/asdf-v0.20.0-${ASDF_PLATFORM}-${ASDF_ARCH}.tar.gz" -o asdf.tar.gz
+          tar -xzf asdf.tar.gz
+          chmod +x asdf
+          mkdir -p ${{ env.ASDF_DIR }}/bin
+          mv asdf ${{ env.ASDF_DIR }}/bin/asdf
+
+      - name: Setup asdf
+        run: |
+          echo "${{ env.ASDF_DIR }}/bin" >> "$GITHUB_PATH"
+          echo "${{ env.ASDF_DIR }}/shims" >> "$GITHUB_PATH"
+          ${{ env.ASDF_DIR }}/bin/asdf --version
 
       - name: Add herdr plugin
-        run: asdf plugin add herdr https://github.com/ogulcancelik/herdr
+        run: asdf plugin add herdr https://github.com/RobLoach/asdf-herdr
 
       - name: Install herdr latest
-        run: asdf install herdr latest
+        run: asdf install herdr 0.8.2
+
+      - name: Set herdr version
+        run: asdf set herdr 0.8.2
 
       - name: Verify herdr
-        run: herdr --version
+        run: |
+          echo "PATH=$PATH"
+          echo "which herdr: $(which herdr 2>&1 || echo 'not found')"
+          echo "asdf shim path: ${{ env.ASDF_DIR }}/shims/herdr"
+          ls -la ${{ env.ASDF_DIR }}/shims/herdr 2>&1 || echo "shim not found"
+          echo "Running herdr --version..."
+          herdr --version
+          echo "Verification successful"
