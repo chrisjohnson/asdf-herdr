@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>asdf-herdr · Recent Work Dashboard</title>
+<style>
+:root{
+  --bg:#070b14; --bg2:#0b1120; --card:rgba(255,255,255,.045); --card-br:rgba(255,255,255,.09);
+  --tx:#e6edf7; --tx2:#9aa7bd; --tx3:#5f6c85;
+  --vio:#8b5cf6; --cyn:#22d3ee; --grn:#34d399; --amb:#fbbf24; --red:#f87171; --blu:#60a5fa; --pnk:#f472b6; --slt:#8494ab;
+  --add-bg:rgba(52,211,153,.13); --add-br:rgba(52,211,153,.55); --del-bg:rgba(248,113,113,.12); --del-br:rgba(248,113,113,.5);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Inter,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.55;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+ radial-gradient(900px 500px at 85% -10%,rgba(139,92,246,.16),transparent 60%),
+ radial-gradient(800px 500px at -10% 30%,rgba(34,211,238,.10),transparent 60%),
+ radial-gradient(700px 700px at 50% 110%,rgba(52,211,153,.07),transparent 60%)}
+::selection{background:rgba(139,92,246,.4)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(7,11,20,.72);border-bottom:1px solid var(--card-br)}
+.nav-in{display:flex;align-items:center;gap:18px;height:56px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+.logo .cube{width:26px;height:26px;border-radius:8px;background:conic-gradient(from 210deg,var(--vio),var(--cyn),var(--grn),var(--vio));box-shadow:0 0 18px rgba(139,92,246,.55)}
+.logo small{color:var(--tx3);font-weight:500;font-family:var(--mono);font-size:11px}
+.nav-links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{padding:6px 11px;border-radius:8px;font-size:13px;color:var(--tx2);transition:.18s}
+.nav-links a:hover{color:var(--tx);background:var(--card)}
+.nav-links a.on{color:var(--tx);background:var(--card)}
+.branch-badge{font-family:var(--mono);font-size:11px;color:var(--cyn);border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08);padding:4px 10px;border-radius:999px;white-space:nowrap}
+/* hero */
+header.hero{padding:64px 0 30px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--cyn);text-transform:uppercase;margin-bottom:14px}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.05;letter-spacing:-.02em;font-weight:800}
+h1 .grad{background:linear-gradient(92deg,var(--vio),var(--cyn) 55%,var(--grn));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{margin-top:16px;max-width:720px;color:var(--tx2);font-size:16.5px}
+.hero .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-family:var(--mono);color:var(--tx2);border:1px solid var(--card-br);background:var(--card);padding:6px 12px;border-radius:999px}
+.pill b{color:var(--tx);font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.stat-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:34px}
+.stat{background:var(--card);border:1px solid var(--card-br);border-radius:16px;padding:16px 14px;text-align:center;backdrop-filter:blur(6px)}
+.stat .n{font-size:28px;font-weight:800;letter-spacing:-.02em;font-family:var(--mono)}
+.stat .l{font-size:11.5px;color:var(--tx3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.stat .n .plus{color:var(--grn)} .stat .n .minus{color:var(--red)}
+@media(max-width:900px){.stat-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.stat-row{grid-template-columns:repeat(2,1fr)};.nav-links{display:none}}
+/* sections */
+section{padding:46px 0 8px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(22px,3vw,30px);letter-spacing:-.01em}
+.sec-head .k{font-family:var(--mono);font-size:12px;color:var(--tx3)}
+.sec-sub{color:var(--tx2);max-width:780px;margin-bottom:22px;font-size:14.5px}
+.card{background:var(--card);border:1px solid var(--card-br);border-radius:18px;backdrop-filter:blur(8px)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+/* phase cards */
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:980px){.phases{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.phases{grid-template-columns:1fr}}
+.phase{position:relative;overflow:hidden;padding:20px 18px;border-radius:18px;border:1px solid var(--card-br);background:var(--card);cursor:pointer;transition:transform .2s,border-color .2s}
+.phase:hover{transform:translateY(-4px)}
+.phase .bar{position:absolute;top:0;left:0;right:0;height:3px}
+.phase .ph-n{font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--tx3)}
+.phase h3{font-size:18px;margin:6px 0 2px}
+.phase .when{font-family:var(--mono);font-size:11.5px;color:var(--tx3);margin-bottom:10px}
+.phase p{font-size:13px;color:var(--tx2)}
+.phase .delta{margin-top:12px;font-family:var(--mono);font-size:12px;display:flex;gap:10px}
+.phase .delta .a{color:var(--grn)} .phase .delta .d{color:var(--red)}
+/* activity */
+.act-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:14px}
+@media(max-width:980px){.act-grid{grid-template-columns:1fr}}
+.act-side{display:flex;flex-direction:column;gap:14px}
+.card-pad{padding:20px}
+h4.t{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);margin-bottom:14px;font-weight:600}
+.heat-wrap{overflow-x:auto;padding-bottom:6px}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,13px);grid-auto-columns:13px;gap:3px}
+.hc{width:13px;height:13px;border-radius:3.5px;background:rgba(255,255,255,.055);cursor:pointer;transition:transform .12s}
+.hc:hover{transform:scale(1.35);outline:1px solid rgba(255,255,255,.35)}
+.hc.l1{background:rgba(139,92,246,.32)} .hc.l2{background:rgba(139,92,246,.55)}
+.hc.l3{background:rgba(139,92,246,.78)} .hc.l4{background:linear-gradient(135deg,#a78bfa,#22d3ee);box-shadow:0 0 8px rgba(34,211,238,.5)}
+.hc.today{outline:1.5px solid var(--cyn)}
+.hlab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--tx3);margin-top:8px}
+#tip{position:fixed;z-index:99;pointer-events:none;background:#101827;border:1px solid var(--card-br);border-radius:10px;padding:9px 12px;font-size:12px;max-width:280px;opacity:0;transition:opacity .12s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#tip b{color:var(--cyn)} #tip .tt{color:var(--tx2);font-family:var(--mono);font-size:11px;margin-top:3px}
+.donut-row{display:flex;align-items:center;gap:18px}
+.donut{flex:none}
+.legend{display:flex;flex-direction:column;gap:7px;font-size:12.5px}
+.legend .li{display:flex;align-items:center;gap:8px;color:var(--tx2)}
+.legend .li b{margin-left:auto;font-family:var(--mono);color:var(--tx)}
+.bars{display:flex;align-items:flex-end;gap:14px;height:110px;padding-top:6px}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.bbar{width:100%;max-width:46px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--vio),rgba(139,92,246,.25));position:relative;transition:height 1s cubic-bezier(.2,.8,.2,1);height:0}
+.bbar span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11.5px;color:var(--tx)}
+.bcol .dl{font-family:var(--mono);font-size:10.5px;color:var(--tx3);white-space:nowrap}
+/* diff explorer */
+.chg-grid{display:grid;grid-template-columns:330px 1fr;gap:14px;align-items:start}
+@media(max-width:980px){.chg-grid{grid-template-columns:1fr}}
+.flist{display:flex;flex-direction:column;gap:8px;max-height:640px;overflow-y:auto;padding-right:4px}
+.fitem{padding:11px 13px;border-radius:13px;border:1px solid var(--card-br);background:var(--card);cursor:pointer;transition:.15s}
+.fitem:hover{border-color:rgba(139,92,246,.5)}
+.fitem.sel{border-color:var(--vio);background:rgba(139,92,246,.12);box-shadow:0 0 0 1px rgba(139,92,246,.4)}
+.fitem .fn{font-family:var(--mono);font-size:12.5px;display:flex;align-items:center;gap:8px}
+.fitem .fd{display:flex;gap:8px;margin-top:6px;align-items:center}
+.fitem .cnt{font-family:var(--mono);font-size:11.5px}
+.cnt.a{color:var(--grn)} .cnt.d{color:var(--red)}
+.fbar{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden;display:flex}
+.fbar .fa{background:var(--grn);height:100%} .fbar .fdot{background:var(--red);height:100%}
+.tag{font-size:10px;font-family:var(--mono);padding:2.5px 7px;border-radius:999px;border:1px solid var(--card-br);color:var(--tx2);white-space:nowrap}
+.tag.new{color:var(--grn);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.diffcard{border-radius:18px;border:1px solid var(--card-br);background:rgba(10,15,26,.8);overflow:hidden;min-height:420px}
+.diff-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--card-br);flex-wrap:wrap}
+.diff-head .fn{font-family:var(--mono);font-size:13px;font-weight:600}
+.diff-head .cnt{font-family:var(--mono);font-size:12px}
+.seg{margin-left:auto;display:flex;background:rgba(255,255,255,.06);border-radius:9px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--tx2);font-size:12px;padding:4px 11px;border-radius:7px;cursor:pointer;font-family:var(--mono)}
+.seg button.on{background:rgba(139,92,246,.3);color:var(--tx)}
+.diff-body{display:grid;grid-template-columns:1fr 1fr;overflow:auto;max-height:600px;font-family:var(--mono);font-size:12.3px;line-height:1.7}
+.diff-body.unified{grid-template-columns:1fr}
+@media(max-width:700px){.diff-body{grid-template-columns:1fr}}
+.dcol{min-width:0}
+.dcol .dh{position:sticky;top:0;background:#0d1424;border-bottom:1px solid var(--card-br);padding:6px 12px;font-size:11px;color:var(--tx3);z-index:2}
+.drow{display:grid;grid-template-columns:44px 1fr;white-space:pre}
+.drow .ln{color:var(--tx3);text-align:right;padding:0 8px 0 0;user-select:none;border-right:1px solid rgba(255,255,255,.06)}
+.drow .lt{padding:0 12px;overflow-x:auto}
+.drow.add .lt{background:var(--add-bg);box-shadow:inset 2.5px 0 0 var(--add-br)}
+.drow.add .ln{background:rgba(52,211,153,.07);color:#6ee7b7}
+.drow.del .lt{background:var(--del-bg);box-shadow:inset 2.5px 0 0 var(--del-br);text-decoration:line-through;text-decoration-color:rgba(248,113,113,.55)}
+.drow.del .ln{background:rgba(248,113,113,.07);color:#fca5a5}
+.drow.gap{cursor:default}
+.drow.gap .lt{color:var(--tx3);text-align:center;background:rgba(255,255,255,.025);padding:2px 0;font-size:11px}
+.drow.gap .ln{border-right:0}
+.urow{display:grid;grid-template-columns:22px 44px 1fr;white-space:pre}
+.urow .um{font-weight:700;text-align:center}
+.urow.add .um{color:var(--grn)} .urow.del .um{color:var(--red)}
+.urow .lt{padding:0 12px}
+.urow.add .lt{background:var(--add-bg)} .urow.del .lt{background:var(--del-bg)}
+/* saga */
+.saga-top{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--card-br);color:var(--tx2);background:var(--card)}
+.chip.on{border-color:currentColor}
+.saga-grid{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
+@media(max-width:980px){.saga-grid{grid-template-columns:1fr}}
+.scard{padding:24px;min-height:330px}
+.scard .sstep{font-family:var(--mono);font-size:12px;color:var(--tx3);letter-spacing:.1em}
+.scard h3{font-size:21px;margin:10px 0 6px;line-height:1.3}
+.scard .smeta{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--tx3);margin-bottom:14px}
+.scard .narr{color:var(--tx2);font-size:14.5px;max-width:640px}
+.scard .narr b{color:var(--tx)}
+.cat{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;padding:4px 11px;border-radius:999px;border:1px solid}
+.sprog{margin-top:20px;height:6px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.sprog .fill{height:100%;background:linear-gradient(90deg,var(--vio),var(--cyn));transition:width .4s ease;border-radius:3px}
+.sctl{display:flex;gap:10px;margin-top:18px;align-items:center}
+.sctl button{font-family:var(--mono);font-size:13px;padding:8px 16px;border-radius:10px;border:1px solid var(--card-br);background:var(--card);color:var(--tx);cursor:pointer;transition:.15s}
+.sctl button:hover{border-color:var(--vio)}
+.sctl button.play{background:linear-gradient(92deg,rgba(139,92,246,.35),rgba(34,211,238,.25));border-color:rgba(139,92,246,.5);min-width:96px}
+.pips{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto}
+.pip{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;border:1px solid transparent;cursor:pointer;font-size:12px;color:var(--tx3);font-family:var(--mono);transition:.15s}
+.pip:hover{background:var(--card)}
+.pip.cur{border-color:var(--vio);color:var(--tx);background:rgba(139,92,246,.1)}
+.pip .pn{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex:none;background:rgba(255,255,255,.08)}
+.pip.cur .pn{background:var(--vio);color:#fff}
+.pip.done .pn{background:rgba(52,211,153,.25);color:var(--grn)}
+.pip .ps{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.finalpipe{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.pstep{font-family:var(--mono);font-size:11.5px;padding:6px 10px;border-radius:9px;border:1px solid var(--card-br);color:var(--tx3);background:var(--card);opacity:.35;transition:.4s}
+.pstep.lit{opacity:1;color:var(--tx);border-color:rgba(34,211,238,.45);background:rgba(34,211,238,.08);box-shadow:0 0 12px rgba(34,211,238,.15)}
+/* timeline */
+.tl-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tl-grid{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+@media(max-width:980px){.tl-grid{grid-template-columns:1fr}}
+.tl{position:relative;padding-left:26px}
+.tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--slt),var(--vio),var(--cyn),var(--grn));border-radius:2px}
+.titem{position:relative;margin-bottom:10px;padding:12px 15px;border-radius:13px;border:1px solid var(--card-br);background:var(--card);cursor:pointer;transition:.15s}
+.titem:hover{border-color:rgba(139,92,246,.55)}
+.titem.sel{border-color:var(--cyn);box-shadow:0 0 0 1px rgba(34,211,238,.4)}
+.titem .tdot{position:absolute;left:-23px;top:18px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg)}
+.titem .trow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px;color:var(--tx3)}
+.titem .tsha{color:var(--cyn)}
+.titem .tsubj{font-size:13.5px;margin-top:4px;color:var(--tx);font-weight:500}
+.titem .tcnt{margin-left:auto}
+.tdetail{padding:20px;position:sticky;top:72px}
+.tdetail h3{font-size:15.5px;line-height:1.4;margin-bottom:10px}
+.tdetail .m{font-family:var(--mono);font-size:12px;color:var(--tx3);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.fline{margin-bottom:9px}
+.fline .fr{display:flex;font-family:var(--mono);font-size:11.5px;color:var(--tx2);justify-content:space-between;margin-bottom:4px}
+.fline .fb{height:7px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;display:flex}
+.fline .fb .fa{background:var(--grn)} .fline .fb .fdot{background:var(--red)}
+/* branches */
+.branch-wrap{overflow-x:auto}
+.branch-svg{min-width:860px;width:100%}
+.bnode{cursor:pointer}
+.bnode circle{transition:.15s}
+.bnode:hover circle{r:9}
+.bnode text{font-family:var(--mono);font-size:10.5px;fill:var(--tx2)}
+.blab{font-family:var(--mono);font-size:11px;fill:var(--tx3)}
+.bline{stroke-dasharray:0}
+/* takeaways */
+.tk{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:860px){.tk{grid-template-columns:1fr}}
+.tkcard{padding:22px;border-radius:18px;border:1px solid var(--card-br);background:var(--card);position:relative;overflow:hidden}
+.tkcard .ic{font-size:22px;margin-bottom:10px;display:block}
+.tkcard h3{font-size:16.5px;margin-bottom:7px}
+.tkcard p{font-size:13.5px;color:var(--tx2)}
+.tkcard.next{border-color:rgba(52,211,153,.4);background:linear-gradient(160deg,rgba(52,211,153,.09),var(--card))}
+footer{margin-top:54px;padding:26px 0 40px;border-top:1px solid var(--card-br);color:var(--tx3);font-size:12.5px;font-family:var(--mono);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-in">
+  <div class="logo"><span class="cube"></span>asdf-herdr <small>/ recent work</small></div>
+  <div class="branch-badge" id="branchBadge"></div>
+  <div class="nav-links">
+    <a href="#phases">Phases</a><a href="#activity">Activity</a><a href="#changes">What changed</a>
+    <a href="#saga">CI saga</a><a href="#timeline">Timeline</a><a href="#branches">Branches</a><a href="#takeaways">Takeaways</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Repository report · chrisjohnson/asdf-herdr</div>
+  <h1>One plugin, <span class="grad">modernized, repaired &amp; shipped-ready</span></h1>
+  <p class="sub">An <b>asdf</b> version-manager plugin for <b>herdr</b>. In 32 days it went from a legacy-structure
+  starter to an asdf&nbsp;0.17+‑native plugin — then <b>asdf&nbsp;0.20.0 broke its CI</b>, and a 17‑commit repair
+  saga rebuilt the test workflow by hand before the plugin was staged for the official
+  asdf‑plugins database.</p>
+  <div class="meta">
+    <span class="pill">⏱ <b>Jul 19 → Aug 20, 2026</b></span>
+    <span class="pill">👥 <b>2</b> contributors</span>
+    <span class="pill">🔀 <b>3</b> PRs merged</span>
+    <span class="pill" id="headPill"></span>
+  </div>
+  <div class="stat-row" id="statRow"></div>
+</div></header>
+
+<main class="wrap">
+
+<section id="phases"><div class="sec-head"><h2>The story in four phases</h2><span class="k">// click a phase to jump in</span></div>
+<p class="sec-sub">Every commit in this window belongs to one of four acts. The diff explorer below each phase shows exactly what changed.</p>
+<div class="phases" id="phaseCards"></div>
+</section>
+
+<section id="activity"><div class="sec-head"><h2>Commit activity</h2><span class="k">// 23 commits · 4 active days</span></div>
+<p class="sec-sub">Almost nothing, then a burst: <b>20 commits on Aug 19</b> alone (17 CI fixes + 3 merges) — the repair day. Hover cells for detail, click to filter the timeline.</p>
+<div class="act-grid">
+  <div class="card card-pad reveal">
+    <h4 class="t">Heatmap · Jul 19 → Aug 20</h4>
+    <div class="heat-wrap"><div class="heat" id="heat"></div></div>
+    <div class="hlab"><span id="heatL"></span><span id="heatR"></span></div>
+  </div>
+  <div class="act-side">
+    <div class="card card-pad reveal">
+      <h4 class="t">Commit composition</h4>
+      <div class="donut-row">
+        <svg class="donut" id="donut" width="150" height="150" viewBox="0 0 150 150"></svg>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+    <div class="card card-pad reveal">
+      <h4 class="t">The burst days</h4>
+      <div class="bars" id="bars"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="changes"><div class="sec-head"><h2>What actually changed</h2><span class="k">// line by line</span></div>
+<p class="sec-sub">The heart of the work. Pick a file on the left — the right pane shows <b>before vs after</b> with added and removed lines highlighted.
+New files show their full contents; removed code is struck through so you can see exactly what the modernization deleted.</p>
+<div class="chg-grid">
+  <div class="flist" id="flist"></div>
+  <div class="diffcard" id="diffcard">
+    <div class="diff-head">
+      <span class="fn" id="dfn"></span>
+      <span class="cnt a" id="dfa"></span><span class="cnt d" id="dfd"></span>
+      <span id="dftags" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+      <div class="seg" id="dseg">
+        <button data-m="split" class="on">side&nbsp;by&nbsp;side</button><button data-m="uni">unified</button>
+      </div>
+      <div class="seg" id="dctx">
+        <button data-c="all" class="on">all</button><button data-c="ch">changes</button>
+      </div>
+    </div>
+    <div class="diff-body" id="dbody"></div>
+  </div>
+</div>
+</section>
+
+<section id="saga"><div class="sec-head"><h2>The CI repair saga</h2><span class="k">// 17 commits · one day · 3 PRs</span></div>
+<p class="sec-sub">asdf&nbsp;v0.20.0 removed the <code style="font-family:var(--mono);font-size:.9em;color:var(--cyn)">plugin test</code> subcommand that the
+<code style="font-family:var(--mono);font-size:.9em;color:var(--cyn)">asdf-vm/actions/plugin-test</code> action wraps — so the Build workflow went red.
+Watch the repair, commit by commit: environment fixes, a wrong plugin URL, asdf version whack-a-mole, quoting bugs — until the workflow stood on its own.</p>
+<div class="saga-top" id="catChips"></div>
+<div class="saga-grid">
+  <div class="card scard" id="scard"></div>
+  <div class="pips" id="pips"></div>
+</div>
+</section>
+
+<section id="timeline"><div class="sec-head"><h2>Full timeline</h2><span class="k">// all 23 commits</span></div>
+<p class="sec-sub">Click any commit to see its per-file impact on the right.</p>
+<div class="tl-filters" id="tlFilters"></div>
+<div class="tl-grid">
+  <div class="tl" id="tl"></div>
+  <div class="card tdetail" id="tdetail"></div>
+</div>
+</section>
+
+<section id="branches"><div class="sec-head"><h2>Branch topology</h2><span class="k">// schematic</span></div>
+<p class="sec-sub">Work landed through three pull requests (fix branches → <b>main</b>), and the current branch
+<b>pr-submission/asdf-plugins</b> carries the asdf‑plugins submission script one commit past main. Hover nodes for detail.</p>
+<div class="card card-pad branch-wrap reveal"><svg class="branch-svg" id="bsvg" viewBox="0 0 920 330"></svg></div>
+</section>
+
+<section id="takeaways"><div class="sec-head"><h2>The point</h2><span class="k">// why this work matters</span></div>
+<div class="tk" id="takeaways"></div>
+</section>
+
+</main>
+<footer class="wrap"><span id="ft1"></span><span id="ft2"></span></footer>
+<div id="tip"></div>
+<script>
+const DATA={"head":{"sha":"3ba8a5b","branch":"pr-submission/asdf-plugins","date":"2026-08-20"},"commits":[{"sha":"6ff98d8","date":"2026-07-19T23:15","author":"Chris Johnson","subject":"Initial asdf plugin for herdr","merge":false,"pr":null,"phase":0,"files":[[".github/workflows/build.yml",22,0],[".github/workflows/lint.yml",24,0],["LICENSE",21,0],["README.md",56,0],["bin/download",16,0],["bin/help.deps",9,0],["bin/help.links",9,0],["bin/help.overview",10,0],["bin/install",11,0],["bin/latest-stable",29,0],["bin/list-all",11,0],["lib/utils.bash",93,0]],"adds":311,"dels":0},{"sha":"4195b19","date":"2026-08-18T00:40","author":"Chris Johnson","subject":"chore: modernize asdf plugin for 0.17+ compatibility","merge":false,"pr":null,"phase":1,"files":[[".github/workflows/build.yml",18,4],[".github/workflows/lint.yml",23,1],["PLAN.md",327,0],["README.md",31,0],["bin/download",26,1],["bin/info",13,0],["bin/install",13,1],["bin/latest-stable",15,4],["bin/list-all",1,1],["bin/test",11,0],["lib/utils.bash",0,5],["plugin.toml",5,0]],"adds":483,"dels":17},{"sha":"8a4ae46","date":"2026-08-19T15:08","author":"Chris Johnson","subject":"Merge pull request #2 from chrisjohnson/fix/workflow-repair","merge":true,"pr":2,"phase":2,"files":[],"adds":0,"dels":0},{"sha":"14dc866","date":"2026-08-19T15:37","author":"Chris Johnson","subject":"Merge pull request #3 from chrisjohnson/fix/workflow-repair","merge":true,"pr":3,"phase":2,"files":[],"adds":0,"dels":0},{"sha":"a9def55","date":"2026-08-19T18:57","author":"DSH Agent","subject":"fix: repair build and lint workflows","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",5,19],[".github/workflows/lint.yml",1,1]],"adds":6,"dels":20},{"sha":"5c678b3","date":"2026-08-19T19:23","author":"DSH Agent","subject":"Replace broken plugin-test action with manual asdf steps - asdf v0.20.0 removed plugin test subcommand","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",15,6]],"adds":15,"dels":6},{"sha":"cc1a16b","date":"2026-08-19T19:41","author":"DSH Agent","subject":"Fix: pass tool_versions to asdf install action to avoid missing .tool-versions file","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",3,6]],"adds":3,"dels":6},{"sha":"3c9a5e4","date":"2026-08-19T20:37","author":"DSH Agent","subject":"Use manual asdf setup instead of broken action","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",14,5]],"adds":14,"dels":5},{"sha":"a1cc5fe","date":"2026-08-19T20:41","author":"DSH Agent","subject":"Fix: use correct asdf plugin URL (RobLoach/asdf-herdr instead of ogulcancelik/herdr)","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",1,1]],"adds":1,"dels":1},{"sha":"fe57151","date":"2026-08-19T20:43","author":"DSH Agent","subject":"Fix: use GITHUB_PATH for asdf binary path instead of bashrc","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",5,5]],"adds":5,"dels":5},{"sha":"9ec6a38","date":"2026-08-19T20:44","author":"DSH Agent","subject":"Fix: set ASDF_DATA_DIR to avoid permission issues","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",1,0]],"adds":1,"dels":0},{"sha":"1e9e378","date":"2026-08-19T20:46","author":"DSH Agent","subject":"Use asdf v0.19.0 with plugin-test action (plugin test cmd available in 0.17-0.19)","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",5,18]],"adds":5,"dels":18},{"sha":"6a6f6fe","date":"2026-08-19T20:49","author":"DSH Agent","subject":"Add debug output to identify plugin add failure","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",28,5]],"adds":28,"dels":5},{"sha":"f55473a","date":"2026-08-19T20:51","author":"DSH Agent","subject":"Fix: use shell variables instead of GitHub Actions expressions in run steps","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",3,3]],"adds":3,"dels":3},{"sha":"e93fbb8","date":"2026-08-19T21:07","author":"DSH Agent","subject":"Use asdf binary release instead of git clone","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",14,17]],"adds":14,"dels":17},{"sha":"4241fa5","date":"2026-08-19T21:09","author":"DSH Agent","subject":"Simplify asdf binary download URL","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",13,1]],"adds":13,"dels":1},{"sha":"8f6a1dd","date":"2026-08-19T21:13","author":"DSH Agent","subject":"Add debug output to verify step","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",8,2]],"adds":8,"dels":2},{"sha":"3ca217c","date":"2026-08-19T21:43","author":"Chris Johnson","subject":"Merge pull request #4 from chrisjohnson/fix/workflow-repair-v2","merge":true,"pr":4,"phase":2,"files":[],"adds":0,"dels":0},{"sha":"2f30fa6","date":"2026-08-19T23:25","author":"DSH Agent","subject":"Fix CI: set herdr version and quote GITHUB_PATH","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",5,2]],"adds":5,"dels":2},{"sha":"fafbe17","date":"2026-08-19T23:28","author":"DSH Agent","subject":"Fix: use correct asdf set command","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",1,1]],"adds":1,"dels":1},{"sha":"fb27281","date":"2026-08-19T23:30","author":"DSH Agent","subject":"Fix: quote asdf list output","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",1,1]],"adds":1,"dels":1},{"sha":"3079ba0","date":"2026-08-19T23:33","author":"DSH Agent","subject":"Fix: use hardcoded version for asdf set","merge":false,"pr":null,"phase":2,"files":[[".github/workflows/build.yml",2,2]],"adds":2,"dels":2},{"sha":"3ba8a5b","date":"2026-08-20T20:31","author":"DSH Agent","subject":"chore: add asdf-plugins submission script","merge":false,"pr":null,"phase":3,"files":[["scripts/submit-to-asdf-plugins.sh",77,0]],"adds":77,"dels":0}],"files":[{"path":".github/workflows/build.yml","phases":[1,2],"tags":["action → 7 manual steps","asdf 0.20.0 binary","GITHUB_PATH + ASDF_DATA_DIR","herdr 0.8.2 pin","debug output"],"old":"name: Build\n\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  plugin_test:\n    name: asdf plugin test\n    strategy:\n      matrix:\n        os:\n          - ubuntu-latest\n          - macos-latest\n    runs-on: ${{ matrix.os }}\n    steps:\n      - name: asdf_plugin_test\n        uses: asdf-vm/actions/plugin-test@v4\n        with:\n          command: \"herdr --version\"","new":"name: Build\n\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  plugin_test:\n    name: asdf plugin test\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os:\n          - ubuntu-latest\n          - macos-latest\n    env:\n      ASDF_DIR: ${{ github.workspace }}/.asdf\n      ASDF_DATA_DIR: ${{ github.workspace }}/.asdf\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n\n      - name: Download asdf binary\n        run: |\n          set -e\n          ASDF_ARCH=\"amd64\"\n          if [ \"${{ matrix.os }}\" = \"macos-latest\" ]; then\n            if uname -m | grep -q arm64; then\n              ASDF_ARCH=\"arm64\"\n            fi\n            ASDF_PLATFORM=\"darwin\"\n          else\n            ASDF_PLATFORM=\"linux\"\n          fi\n          echo \"Downloading asdf for ${ASDF_PLATFORM}-${ASDF_ARCH}...\"\n          curl -sSL \"https://github.com/asdf-vm/asdf/releases/download/v0.20.0/asdf-v0.20.0-${ASDF_PLATFORM}-${ASDF_ARCH}.tar.gz\" -o asdf.tar.gz\n          tar -xzf asdf.tar.gz\n          chmod +x asdf\n          mkdir -p ${{ env.ASDF_DIR }}/bin\n          mv asdf ${{ env.ASDF_DIR }}/bin/asdf\n\n      - name: Setup asdf\n        run: |\n          echo \"${{ env.ASDF_DIR }}/bin\" >> \"$GITHUB_PATH\"\n          echo \"${{ env.ASDF_DIR }}/shims\" >> \"$GITHUB_PATH\"\n          ${{ env.ASDF_DIR }}/bin/asdf --version\n\n      - name: Add herdr plugin\n        run: asdf plugin add herdr https://github.com/RobLoach/asdf-herdr\n\n      - name: Install herdr latest\n        run: asdf install herdr 0.8.2\n\n      - name: Set herdr version\n        run: asdf set herdr 0.8.2\n\n      - name: Verify herdr\n        run: |\n          echo \"PATH=$PATH\"\n          echo \"which herdr: $(which herdr 2>&1 || echo 'not found')\"\n          echo \"asdf shim path: ${{ env.ASDF_DIR }}/shims/herdr\"\n          ls -la ${{ env.ASDF_DIR }}/shims/herdr 2>&1 || echo \"shim not found\"\n          echo \"Running herdr --version...\"\n          herdr --version\n          echo \"Verification successful\"","adds":164,"dels":98},{"path":"PLAN.md","phases":[1],"tags":["+ 327-line modernization plan","phases + testing plan"],"old":null,"new":"# asdf-herdr Modernization Plan\n\nThis document outlines the changes needed to update `asdf-herdr` to follow modern asdf plugin practices, particularly after the asdf 0.17+ rewrite as a standalone binary.\n\n## Current State Analysis\n\nThe current plugin follows the **legacy asdf plugin structure** (pre-0.17):\n- `bin/download` - Downloads the binary\n- `bin/install` - Installs the binary to the install path\n- `bin/list-all` - Lists available versions\n- `bin/latest-stable` - Resolves the latest stable version\n- `lib/utils.bash` - Shared utility functions\n\nThis is still **functional** but misses several modern features and best practices.\n\n## Changes Required\n\n### 1. Add `plugin.toml` (REQUIRED for asdf 0.17+)\n\n**What:** Create a `plugin.toml` file at the repository root.\n\n**Why:** asdf 0.17+ requires this file for plugin metadata and validation.\n\n**Format:**\n```toml\nname = \"herdr\"\ndescription = \"asdf plugin for herdr\"\nrepository = \"https://github.com/ogulcancelik/herdr\"\nextensions = []\naliases = {}\n```\n\n**Actions:**\n- [ ] Create `plugin.toml` with required metadata\n- [ ] Add any optional fields (e.g., `extensions` if needed)\n\n---\n\n### 2. Update `bin/download` (MODERNIZE)\n\n**What:** Keep the core logic but ensure it aligns with asdf 0.17+ expectations.\n\n**Why:** The asdf binary now handles more boilerplate, but the download script still needs to place the binary in `$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME`.\n\n**Current issues:**\n- The script is minimal and correct, but could benefit from better error handling.\n\n**Actions:**\n- [ ] Verify `bin/download` places binary in `$ASDF_DOWNLOAD_PATH/bin/herdr`\n- [ ] Add explicit error handling for download failures\n- [ ] Consider adding a checksum verification step (if herdr provides them)\n\n**Modern pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nmkdir -p \"$ASDF_DOWNLOAD_PATH/bin\"\nbinary_path=\"$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME\"\n\ndownload_release \"$ASDF_INSTALL_VERSION\" \"$binary_path\"\nchmod +x \"$binary_path\"\n\n# Optional: verify checksum if available\n# if [ -n \"${CHECKSUM:-}\" ]; then\n#   echo \"$CHECKSUM  $binary_path\" | sha256sum -c\n# fi\n```\n\n---\n\n### 3. Update `bin/install` (MODERNIZE)\n\n**What:** Keep the core logic but ensure it aligns with asdf 0.17+ expectations.\n\n**Why:** asdf 0.17+ expects the install script to copy the binary to `$ASDF_INSTALL_PATH/bin/` and make it executable.\n\n**Current issues:**\n- The script is minimal and correct.\n\n**Actions:**\n- [ ] Verify `bin/install` copies binary to `${ASDF_INSTALL_PATH%/bin}/bin/herdr`\n- [ ] Add validation that the binary is executable after install\n- [ ] Consider adding a `bin/test` hook (see below)\n\n**Modern pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\ninstall_version \"$ASDF_INSTALL_TYPE\" \"$ASDF_INSTALL_VERSION\" \"$ASDF_INSTALL_PATH\"\n```\n\n---\n\n### 4. Update `bin/list-all` (MODERNIZE)\n\n**What:** Keep the core logic but ensure it aligns with asdf 0.17+ expectations.\n\n**Why:** asdf 0.17+ expects `list-all` to output one version per line, and asdf handles sorting.\n\n**Current issues:**\n- The script uses `sort_versions | xargs echo` which is redundant (asdf sorts now).\n\n**Actions:**\n- [ ] Remove `sort_versions` and `xargs echo` (asdf handles sorting)\n- [ ] Output one version per line directly\n\n**Modern pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nlist_all_versions\n```\n\n---\n\n### 5. Update `bin/latest-stable` (MODERNIZE)\n\n**What:** Keep the core logic but ensure it aligns with asdf 0.17+ expectations.\n\n**Why:** The script is correct but could benefit from better error handling.\n\n**Actions:**\n- [ ] Verify it outputs just the version string (no extra whitespace)\n- [ ] Add error handling for API failures\n\n**Modern pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\ncurl_opts=(-sI)\n\nif [ -n \"${GITHUB_API_TOKEN:-}\" ]; then\n    curl_opts=(\"${curl_opts[@]}\" -H \"Authorization: token $GITHUB_API_TOKEN\")\nfi\n\n# curl of REPO/releases/latest is expected to be a 302 to another URL\nredirect_url=$(curl \"${curl_opts[@]}\" \"$GH_REPO/releases/latest\" | sed -n -e \"s|^location: *||p\" | sed -n -e \"s|\\r||p\")\nversion=\nprintf \"redirect url: %s\\n\" \"$redirect_url\" >&2\nif [[ \"$redirect_url\" == \"$GH_REPO/releases\" ]]; then\n    version=\"$(list_all_versions | tail -n1)\"\nelse\n    version=\"$(printf \"%s\\n\" \"$redirect_url\" | sed 's|.*/tag/v\\{0,1\\}||')\"\nfi\n\nprintf \"%s\\n\" \"$version\"\n```\n\n**Note:** Removed `sort_versions` since asdf handles sorting now.\n\n---\n\n### 6. Add `bin/test` (OPTIONAL BUT RECOMMENDED)\n\n**What:** Create a `bin/test` script that validates the installation.\n\n**Why:** asdf 0.17+ supports a `bin/test` hook that runs after installation to validate the tool works. This is optional but recommended for better user experience.\n\n**Pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\n# Run a simple command to verify the tool works\n\"$ASDF_INSTALL_PATH/bin/$TOOL_NAME\" --version\n```\n\n**Actions:**\n- [ ] Create `bin/test` that runs `herdr --version`\n- [ ] Make it executable\n- [ ] Test it manually\n\n---\n\n### 7. Add `bin/info` (OPTIONAL)\n\n**What:** Create a `bin/info` script that shows installation information.\n\n**Why:** asdf 0.17+ supports a `bin/info` hook that displays when running `asdf info herdr`. This is optional but provides useful debugging information.\n\n**Pattern:**\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\n\necho \"herdr version: $(herdr --version 2>/dev/null || echo 'not installed')\"\necho \"install path: $ASDF_INSTALL_PATH\"\necho \"download path: $ASDF_DOWNLOAD_PATH\"\n```\n\n**Actions:**\n- [ ] Create `bin/info` (optional, can skip if not needed)\n\n---\n\n### 8. Update Documentation (REQUIRED)\n\n**What:** Update README.md to reflect modern asdf practices.\n\n**Why:** Documentation should match the current state of the plugin.\n\n**Actions:**\n- [ ] Update README to mention asdf 0.17+ compatibility\n- [ ] Add notes about `plugin.toml`\n- [ ] Consider adding a \"Contributing\" section with modern development practices\n\n---\n\n### 9. Add CI/CD Improvements (RECOMMENDED)\n\n**What:** Update GitHub Actions workflows to test against modern asdf.\n\n**Why:** Ensure the plugin works with the latest asdf binary.\n\n**Actions:**\n- [ ] Update `build.yml` to use the latest asdf version\n- [ ] Add a test step that runs `bin/test` after installation\n- [ ] Consider testing on multiple OS/arch combinations\n\n---\n\n### 10. Consider Additional Features (OPTIONAL)\n\n**What:** Explore optional enhancements.\n\n**Why:** These can improve the user experience.\n\n**Ideas:**\n- [ ] Add checksum verification for downloaded binaries\n- [ ] Support for multiple binaries (if herdr ships multiple tools)\n- [ ] Add `bin/rehash` support (if herdr modifies PATH or other environment)\n- [ ] Improve error messages with more context\n\n---\n\n## Implementation Priority\n\n### Phase 1: Required for asdf 0.17+ Compatibility\n1. Add `plugin.toml`\n2. Remove `sort_versions` from `bin/list-all` and `bin/latest-stable`\n\n### Phase 2: Recommended Improvements\n3. Add `bin/test` hook\n4. Update documentation\n5. Improve error handling in existing scripts\n\n### Phase 3: Optional Enhancements\n6. Add `bin/info` hook\n7. Add checksum verification\n8. Update CI/CD workflows\n9. Explore additional features\n\n---\n\n## Testing Plan\n\nAfter implementing changes:\n\n1. **Manual testing:**\n   ```bash\n   asdf plugin add herdr /path/to/local/plugin\n   asdf install herdr latest\n   asdf global herdr latest\n   herdr --version\n   asdf list herdr\n   asdf info herdr\n   ```\n\n2. **Automated testing:**\n   - Run `bin/test` after install\n   - Verify `asdf list-all herdr` outputs sorted versions\n   - Verify `asdf latest herdr` returns a valid version\n\n3. **CI testing:**\n   - Test on macOS (x86_64 and arm64)\n   - Test on Linux (x86_64 and arm64)\n   - Test with and without `GITHUB_API_TOKEN`\n\n---\n\n## References\n\n- [asdf documentation](https://asdf-vm.com/)\n- [asdf plugin development guide](https://asdf-vm.com/guide/create-a-plugin.html)\n- [asdf 0.17 release notes](https://github.com/asdf-vm/asdf/releases/tag/v0.17.0)\n- [Modern asdf plugin examples](https://github.com/asdf-vm/asdf/tree/master/lib/commands/plugin)\n\n---\n\n## Next Steps\n\n1. Review this plan\n2. Implement Phase 1 changes (required)\n3. Test manually\n4. Implement Phase 2 changes (recommended)\n5. Update documentation\n6. Update CI/CD\n7. Consider Phase 3 features","adds":327,"dels":0},{"path":"lib/utils.bash","phases":[1],"tags":["− removed sort_versions()"],"old":"#!/usr/bin/env bash\n\nset -euo pipefail\n\nGH_REPO=\"https://github.com/ogulcancelik/herdr\"\nTOOL_NAME=\"herdr\"\nTOOL_TEST=\"herdr --version\"\n\nfail() {\n\techo -e \"asdf-$TOOL_NAME: $*\"\n\texit 1\n}\n\ncurl_opts=(-fsSL)\n\nif [ -n \"${GITHUB_API_TOKEN:-}\" ]; then\n\tcurl_opts=(\"${curl_opts[@]}\" -H \"Authorization: token $GITHUB_API_TOKEN\")\nfi\n\nsort_versions() {\n\tsed 'h; s/[+-]/./g; s/.p\\([[:digit:]]\\)/.z\\1/; s/$/.z/; G; s/\\n/ /' |\n\t\tLC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'\n}\n\nlist_github_tags() {\n\t# Only stable \"vX.Y.Z\" release tags: herdr also tags unversioned preview\n\t# builds (e.g. \"preview-2026-07-17-813fec141faa\") that don't fit the\n\t# download URL convention below and aren't meant to be installed by version.\n\tgit ls-remote --tags --refs \"$GH_REPO\" |\n\t\tgrep -o 'refs/tags/.*' | cut -d/ -f3- |\n\t\tgrep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+$' |\n\t\tsed 's/^v//'\n}\n\nlist_all_versions() {\n\tlist_github_tags\n}\n\n# herdr ships prebuilt binaries per OS/arch (no source tarball), named e.g.\n# herdr-macos-aarch64, herdr-linux-x86_64 — map uname output to that scheme.\nget_platform() {\n\tcase \"$(uname -s)\" in\n\tDarwin) echo \"macos\" ;;\n\tLinux) echo \"linux\" ;;\n\t*) fail \"Unsupported OS: $(uname -s)\" ;;\n\tesac\n}\n\nget_arch() {\n\tcase \"$(uname -m)\" in\n\tx86_64 | amd64) echo \"x86_64\" ;;\n\tarm64 | aarch64) echo \"aarch64\" ;;\n\t*) fail \"Unsupported architecture: $(uname -m)\" ;;\n\tesac\n}\n\ndownload_release() {\n\tlocal version filename url platform arch\n\tversion=\"$1\"\n\tfilename=\"$2\"\n\tplatform=\"$(get_platform)\"\n\tarch=\"$(get_arch)\"\n\n\turl=\"$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}\"\n\n\techo \"* Downloading $TOOL_NAME release $version...\"\n\tcurl \"${curl_opts[@]}\" -o \"$filename\" \"$url\" || fail \"Could not download $url\"\n}\n\ninstall_version() {\n\tlocal install_type=\"$1\"\n\tlocal version=\"$2\"\n\tlocal install_path=\"${3%/bin}/bin\"\n\n\tif [ \"$install_type\" != \"version\" ]; then\n\t\tfail \"asdf-$TOOL_NAME supports release installs only\"\n\tfi\n\n\t(\n\t\tmkdir -p \"$install_path\"\n\t\tcp \"$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME\" \"$install_path/$TOOL_NAME\"\n\t\tchmod +x \"$install_path/$TOOL_NAME\"\n\n\t\tlocal tool_cmd\n\t\ttool_cmd=\"$(echo \"$TOOL_TEST\" | cut -d' ' -f1)\"\n\t\ttest -x \"$install_path/$tool_cmd\" || fail \"Expected $install_path/$tool_cmd to be executable.\"\n\n\t\techo \"$TOOL_NAME $version installation was successful!\"\n\t) || (\n\t\trm -rf \"$install_path\"\n\t\tfail \"An error occurred while installing $TOOL_NAME $version.\"\n\t)\n}","new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\nGH_REPO=\"https://github.com/ogulcancelik/herdr\"\nTOOL_NAME=\"herdr\"\nTOOL_TEST=\"herdr --version\"\n\nfail() {\n\techo -e \"asdf-$TOOL_NAME: $*\"\n\texit 1\n}\n\ncurl_opts=(-fsSL)\n\nif [ -n \"${GITHUB_API_TOKEN:-}\" ]; then\n\tcurl_opts=(\"${curl_opts[@]}\" -H \"Authorization: token $GITHUB_API_TOKEN\")\nfi\n\nlist_github_tags() {\n\t# Only stable \"vX.Y.Z\" release tags: herdr also tags unversioned preview\n\t# builds (e.g. \"preview-2026-07-17-813fec141faa\") that don't fit the\n\t# download URL convention below and aren't meant to be installed by version.\n\tgit ls-remote --tags --refs \"$GH_REPO\" |\n\t\tgrep -o 'refs/tags/.*' | cut -d/ -f3- |\n\t\tgrep -E '^v[0-9]+\\.[0-9]+\\.[0-9]+$' |\n\t\tsed 's/^v//'\n}\n\nlist_all_versions() {\n\tlist_github_tags\n}\n\n# herdr ships prebuilt binaries per OS/arch (no source tarball), named e.g.\n# herdr-macos-aarch64, herdr-linux-x86_64 — map uname output to that scheme.\nget_platform() {\n\tcase \"$(uname -s)\" in\n\tDarwin) echo \"macos\" ;;\n\tLinux) echo \"linux\" ;;\n\t*) fail \"Unsupported OS: $(uname -s)\" ;;\n\tesac\n}\n\nget_arch() {\n\tcase \"$(uname -m)\" in\n\tx86_64 | amd64) echo \"x86_64\" ;;\n\tarm64 | aarch64) echo \"aarch64\" ;;\n\t*) fail \"Unsupported architecture: $(uname -m)\" ;;\n\tesac\n}\n\ndownload_release() {\n\tlocal version filename url platform arch\n\tversion=\"$1\"\n\tfilename=\"$2\"\n\tplatform=\"$(get_platform)\"\n\tarch=\"$(get_arch)\"\n\n\turl=\"$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}\"\n\n\techo \"* Downloading $TOOL_NAME release $version...\"\n\tcurl \"${curl_opts[@]}\" -o \"$filename\" \"$url\" || fail \"Could not download $url\"\n}\n\ninstall_version() {\n\tlocal install_type=\"$1\"\n\tlocal version=\"$2\"\n\tlocal install_path=\"${3%/bin}/bin\"\n\n\tif [ \"$install_type\" != \"version\" ]; then\n\t\tfail \"asdf-$TOOL_NAME supports release installs only\"\n\tfi\n\n\t(\n\t\tmkdir -p \"$install_path\"\n\t\tcp \"$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME\" \"$install_path/$TOOL_NAME\"\n\t\tchmod +x \"$install_path/$TOOL_NAME\"\n\n\t\tlocal tool_cmd\n\t\ttool_cmd=\"$(echo \"$TOOL_TEST\" | cut -d' ' -f1)\"\n\t\ttest -x \"$install_path/$tool_cmd\" || fail \"Expected $install_path/$tool_cmd to be executable.\"\n\n\t\techo \"$TOOL_NAME $version installation was successful!\"\n\t) || (\n\t\trm -rf \"$install_path\"\n\t\tfail \"An error occurred while installing $TOOL_NAME $version.\"\n\t)\n}","adds":93,"dels":5},{"path":"README.md","phases":[1],"tags":["+ asdf 0.17+ compatibility","+ development workflow"],"old":"<div align=\"center\">\n\n# asdf-herdr [![Build](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/build.yml/badge.svg)](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/build.yml) [![Lint](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/lint.yml/badge.svg)](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/lint.yml)\n\n[herdr](https://herdr.dev) plugin for the [asdf version manager](https://asdf-vm.com).\n\n</div>\n\n# Contents\n\n- [Dependencies](#dependencies)\n- [Install](#install)\n- [Contributing](#contributing)\n- [License](#license)\n\n# Dependencies\n\n- `bash`, `curl`, `git`, and [POSIX utilities](https://pubs.opengroup.org/onlinepubs/9699919799/idx/utilities.html).\n- Prebuilt binaries are fetched for macOS and Linux, on `x86_64` and `arm64`.\n\n# Install\n\nPlugin:\n\n```shell\nasdf plugin add herdr\n# or\nasdf plugin add herdr https://github.com/chrisjohnson/asdf-herdr.git\n```\n\nherdr:\n\n```shell\n# Show all installable versions\nasdf list-all herdr\n\n# Install specific version\nasdf install herdr latest\n\n# Set a version globally (on your ~/.tool-versions file)\nasdf global herdr latest\n\n# Now herdr commands are available\nherdr --version\n```\n\nCheck [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to\ninstall & manage versions.\n\n# Contributing\n\nContributions of any kind welcome!\n\n# License\n\nSee [LICENSE](LICENSE) © [Chris Johnson](https://github.com/chrisjohnson/)","new":"<div align=\"center\">\n\n# asdf-herdr [![Build](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/build.yml/badge.svg)](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/build.yml) [![Lint](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/lint.yml/badge.svg)](https://github.com/chrisjohnson/asdf-herdr/actions/workflows/lint.yml)\n\n[herdr](https://herdr.dev) plugin for the [asdf version manager](https://asdf-vm.com).\n\nCompatible with asdf 0.17.0+.\n\n</div>\n\n# Contents\n\n- [Dependencies](#dependencies)\n- [Install](#install)\n- [Usage](#usage)\n- [Contributing](#contributing)\n- [License](#license)\n\n# Dependencies\n\n- `bash`, `curl`, `git`, and [POSIX utilities](https://pubs.opengroup.org/onlinepubs/9699919799/idx/utilities.html).\n- Prebuilt binaries are fetched for macOS and Linux, on `x86_64` and `arm64`.\n\n# Install\n\nPlugin:\n\n```shell\nasdf plugin add herdr\n# or\nasdf plugin add herdr https://github.com/chrisjohnson/asdf-herdr.git\n```\n\nherdr:\n\n```shell\n# Show all installable versions\nasdf list-all herdr\n\n# Install specific version\nasdf install herdr latest\n\n# Set a version globally (on your ~/.tool-versions file)\nasdf global herdr latest\n\n# Now herdr commands are available\nherdr --version\n```\n\nCheck [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to\ninstall & manage versions.\n\n# Usage\n\n```shell\n# Show installed versions\nasdf list herdr\n\n# Show current version\nasdf current herdr\n\n# Switch to a different version\nasdf local herdr <version>\n\n# Uninstall a version\nasdf uninstall herdr <version>\n```\n\n# Contributing\n\nContributions of any kind welcome!\n\n## Development\n\n1. Clone this repository\n2. Make changes\n3. Test with:\n   ```shell\n   asdf plugin remove herdr\n   asdf plugin add herdr /path/to/cloned/repo\n   asdf install herdr latest\n   herdr --version\n   ```\n\n# License\n\nSee [LICENSE](LICENSE) © [Chris Johnson](https://github.com/chrisjohnson/)","adds":87,"dels":0},{"path":"scripts/submit-to-asdf-plugins.sh","phases":[3],"tags":["+ asdf-plugins submission","PR to asdf-vm/asdf-plugins"],"old":null,"new":"#!/usr/bin/env bash\n#\n# submit-to-asdf-plugins.sh\n#\n# Stages and creates a PR to add asdf-herdr to the asdf-vm/asdf-plugins database.\n#\n# Prerequisites:\n#   - gh CLI authenticated as chrisjohnson\n#   - The asdf-vm/asdf-plugins repo must be forked under your account first\n#     (do this manually at https://github.com/asdf-vm/asdf-plugins/fork\n#      since the PAT lacks the `repo` scope for API-based forking)\n#\n# Usage:\n#   ./scripts/submit-to-asdf-plugins.sh\n#\n\nset -euo pipefail\n\nPLUGIN_NAME=\"herdr\"\nPLUGIN_REPO=\"https://github.com/chrisjohnson/asdf-herdr.git\"\nUPSTREAM_REPO=\"https://github.com/asdf-vm/asdf-plugins.git\"\nFORK_REPO=\"chrisjohnson/asdf-plugins\"  # Must exist before running this script\n\nWORK_DIR=$(mktemp -d)\ntrap 'rm -rf \"$WORK_DIR\"' EXIT\n\necho \"* Cloning your fork of asdf-plugins...\"\ngit clone \"https://github.com/${FORK_REPO}.git\" \"$WORK_DIR/asdf-plugins\"\ncd \"$WORK_DIR/asdf-plugins\"\n\ngit remote add upstream \"$UPSTREAM_REPO\"\n\necho \"* Adding plugin file: plugins/${PLUGIN_NAME}\"\nprintf 'repository = %s\\n' \"$PLUGIN_REPO\" > \"plugins/${PLUGIN_NAME}\"\n\necho \"* Adding entry to README.md Plugin List table (alphabetical: herdr)\"\n# herdr goes between heroku-cli and hey\nsed -i '/^| heroku-cli |/a\\| herdr                          | [chrisjohnson/asdf-herdr](https://github.com/chrisjohnson/asdf-herdr)                                                   |' README.md\n\necho \"* Formatting with prettier...\"\nnpx --yes prettier --write README.md plugins/\"${PLUGIN_NAME}\"\n\necho \"* Testing plugin entry...\"\nbash scripts/test_plugin.bash --file \"plugins/${PLUGIN_NAME}\"\n\necho \"* Creating PR branch and pushing...\"\ngit checkout -b \"add-${PLUGIN_NAME}\"\ngit add \"plugins/${PLUGIN_NAME}\" README.md\ngit commit -m \"feat(plugin): add ${PLUGIN_NAME}\"\n\ngit push -u origin \"add-${PLUGIN_NAME}\"\n\necho \"* Creating pull request...\"\ngh pr create \\\n  --repo \"asdf-vm/asdf-plugins\" \\\n  --head \"${FORK_REPO}:add-${PLUGIN_NAME}\" \\\n  --base main \\\n  --title \"feat(plugin): add ${PLUGIN_NAME}\" \\\n  --body \"## Summary\n\nDescription:\n- Tool repo URL: ${PLUGIN_REPO}\n- Plugin repo URL: https://github.com/chrisjohnson/asdf-herdr\n\n## Checklist\n\n- [x] Formatted with \\`scripts/format.bash\\`\n- [x] Tested locally with \\`scripts/test_plugin.bash --file plugins/${PLUGIN_NAME}\\`\n- [x] Plugin CI tests are green (see https://github.com/chrisjohnson/asdf-herdr/actions)\"\n\necho \"\"\necho \"* PR created! Review at the URL printed above.\"\necho \"* Don't forget to sync your fork with upstream before future contributions:\"\necho \"    cd $WORK_DIR/asdf-plugins\"\necho \"    git fetch upstream\"\necho \"    git merge upstream/main\"\necho \"    git push origin main\"","adds":77,"dels":0},{"path":".github/workflows/lint.yml","phases":[1],"tags":["+ shellcheck install + --source-path","+ validate job: toml · execs · structure"],"old":"name: Lint\n\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  shellcheck:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: shellcheck\n        run: shellcheck --shell=bash --external-sources bin/* lib/*\n\n  actionlint:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Check workflow files\n        uses: docker://rhysd/actionlint:1.6.23\n        with:\n          args: -color","new":"name: Lint\n\non:\n  push:\n    branches:\n      - main\n  pull_request:\n\njobs:\n  shellcheck:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Install shellcheck\n        run: sudo apt-get install -y shellcheck\n      - name: Run shellcheck\n        run: shellcheck --shell=bash --external-sources --source-path=SCRIPTDIR bin/* lib/*\n\n  actionlint:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Check workflow files\n        uses: docker://rhysd/actionlint:1.6.23\n        with:\n          args: -color\n\n  validate:\n    name: Validate plugin structure\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Check plugin.toml exists\n        run: test -f plugin.toml\n      - name: Check bin scripts are executable\n        run: |\n          for script in bin/*; do\n            if [ -f \"$script\" ] && [[ ! \"$script\" == *.yml ]]; then\n              test -x \"$script\" || exit 1\n            fi\n          done\n      - name: Validate TOML syntax\n        run: |\n          if command -v python3 &>/dev/null; then\n            python3 -c \"import tomllib; tomllib.load(open('plugin.toml', 'rb'))\"\n          fi","adds":48,"dels":2},{"path":"bin/latest-stable","phases":[1],"tags":["− sort_versions","+ fail() guards","stderr on curl"],"old":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\n. \"${plugin_dir}/lib/utils.bash\"\n\ncurl_opts=(-sI)\n\nif [ -n \"${GITHUB_API_TOKEN:-}\" ]; then\n\tcurl_opts=(\"${curl_opts[@]}\" -H \"Authorization: token $GITHUB_API_TOKEN\")\nfi\n\n# curl of REPO/releases/latest is expected to be a 302 to another URL\n# when no releases redirect_url=\"REPO/releases\"\n# when there are releases redirect_url=\"REPO/releases/tag/v<VERSION>\"\nredirect_url=$(curl \"${curl_opts[@]}\" \"$GH_REPO/releases/latest\" | sed -n -e \"s|^location: *||p\" | sed -n -e \"s|\\r||p\")\nversion=\nprintf \"redirect url: %s\\n\" \"$redirect_url\" >&2\nif [[ \"$redirect_url\" == \"$GH_REPO/releases\" ]]; then\n\tversion=\"$(list_all_versions | sort_versions | tail -n1 | xargs echo)\"\nelse\n\tversion=\"$(printf \"%s\\n\" \"$redirect_url\" | sed 's|.*/tag/v\\{0,1\\}||')\"\nfi\n\nprintf \"%s\\n\" \"$version\"","new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\ncurl_opts=(-sI)\n\nif [ -n \"${GITHUB_API_TOKEN:-}\" ]; then\n\tcurl_opts=(\"${curl_opts[@]}\" -H \"Authorization: token $GITHUB_API_TOKEN\")\nfi\n\n# curl of REPO/releases/latest is expected to be a 302 to another URL\n# when no releases redirect_url=\"REPO/releases\"\n# when there are releases redirect_url=\"REPO/releases/tag/v<VERSION>\"\nredirect_url=$(curl \"${curl_opts[@]}\" \"$GH_REPO/releases/latest\" 2>/dev/null | sed -n -e \"s|^location: *||p\" | sed -n -e \"s|\\r||p\")\n\nif [ -z \"$redirect_url\" ]; then\n\tfail \"Could not resolve latest release from GitHub\"\nfi\n\nprintf \"redirect url: %s\\n\" \"$redirect_url\" >&2\n\nif [[ \"$redirect_url\" == \"$GH_REPO/releases\" ]]; then\n\tversion=\"$(list_all_versions | tail -n1)\"\n\tif [ -z \"$version\" ]; then\n\t\tfail \"No stable versions found\"\n\tfi\nelse\n\tversion=\"$(printf \"%s\\n\" \"$redirect_url\" | sed 's|.*/tag/v\\{0,1\\}||')\"\n\tif [ -z \"$version\" ]; then\n\t\tfail \"Could not parse version from redirect URL\"\n\tfi\nfi\n\nprintf \"%s\\n\" \"$version\"","adds":44,"dels":4},{"path":"bin/download","phases":[1],"tags":["+ env var guards","+ empty binary check","+ optional SHA-256 checksum"],"old":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nmkdir -p \"$ASDF_DOWNLOAD_PATH/bin\"\n\nbinary_path=\"$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME\"\n\ndownload_release \"$ASDF_INSTALL_VERSION\" \"$binary_path\"\nchmod +x \"$binary_path\"","new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nif [ -z \"${ASDF_INSTALL_VERSION:-}\" ]; then\n\tfail \"ASDF_INSTALL_VERSION is not set\"\nfi\n\nif [ -z \"${ASDF_DOWNLOAD_PATH:-}\" ]; then\n\tfail \"ASDF_DOWNLOAD_PATH is not set\"\nfi\n\nmkdir -p \"$ASDF_DOWNLOAD_PATH/bin\"\n\nbinary_path=\"$ASDF_DOWNLOAD_PATH/bin/$TOOL_NAME\"\n\ndownload_release \"$ASDF_INSTALL_VERSION\" \"$binary_path\" || fail \"Could not download herdr $ASDF_INSTALL_VERSION for $(get_platform)-$(get_arch)\"\n\nchmod +x \"$binary_path\"\n\n# Verify the downloaded file is executable and not empty\nif [ ! -s \"$binary_path\" ]; then\n\tfail \"Downloaded binary is empty\"\nfi\n\n# Optional checksum verification (if CHECKSUM env var is set)\nif [ -n \"${CHECKSUM:-}\" ]; then\n\techo \"Verifying checksum...\"\n\texpected_hash=$(echo \"$CHECKSUM\" | awk '{print $1}')\n\tactual_hash=$(sha256sum \"$binary_path\" | awk '{print $1}')\n\tif [ \"$expected_hash\" != \"$actual_hash\" ]; then\n\t\tfail \"Checksum mismatch: expected $expected_hash, got $actual_hash\"\n\tfi\n\techo \"Checksum verified successfully\"\nfi","adds":42,"dels":1},{"path":"bin/install","phases":[1],"tags":["+ env var guards","+ failure handling"],"old":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\ninstall_version \"$ASDF_INSTALL_TYPE\" \"$ASDF_INSTALL_VERSION\" \"$ASDF_INSTALL_PATH\"","new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nif [ -z \"${ASDF_INSTALL_TYPE:-}\" ]; then\n\tfail \"ASDF_INSTALL_TYPE is not set\"\nfi\n\nif [ -z \"${ASDF_INSTALL_VERSION:-}\" ]; then\n\tfail \"ASDF_INSTALL_VERSION is not set\"\nfi\n\nif [ -z \"${ASDF_INSTALL_PATH:-}\" ]; then\n\tfail \"ASDF_INSTALL_PATH is not set\"\nfi\n\ninstall_version \"$ASDF_INSTALL_TYPE\" \"$ASDF_INSTALL_VERSION\" \"$ASDF_INSTALL_PATH\" || fail \"Installation failed for herdr $ASDF_INSTALL_VERSION\"","adds":24,"dels":1},{"path":"bin/info","phases":[1],"tags":["+ asdf info support"],"old":null,"new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\necho \"herdr version: $(herdr --version 2>/dev/null || echo 'not installed')\"\necho \"install path: $ASDF_INSTALL_PATH\"\necho \"download path: $ASDF_DOWNLOAD_PATH\"\necho \"platform: $(get_platform)-$(get_arch)\"","adds":13,"dels":0},{"path":"bin/list-all","phases":[1],"tags":["− manual sorting (asdf sorts)"],"old":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nlist_all_versions | sort_versions | xargs echo","new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\nlist_all_versions","adds":12,"dels":1},{"path":"bin/test","phases":[1],"tags":["+ post-install validation","runs herdr --version"],"old":null,"new":"#!/usr/bin/env bash\n\nset -euo pipefail\n\ncurrent_script_path=${BASH_SOURCE[0]}\nplugin_dir=$(dirname \"$(dirname \"$current_script_path\")\")\n# shellcheck source=../lib/utils.bash\nsource \"${plugin_dir}/lib/utils.bash\"\n\n# Validate that the installed binary works by running a simple command\n\"$ASDF_INSTALL_PATH/bin/$TOOL_NAME\" --version","adds":11,"dels":0},{"path":"plugin.toml","phases":[1],"tags":["+ required for asdf 0.17+","plugin metadata"],"old":null,"new":"name = \"herdr\"\ndescription = \"asdf plugin for herdr\"\nrepository = \"https://github.com/ogulcancelik/herdr\"\nextensions = []\naliases = {}","adds":5,"dels":0}],"saga":[{"sha":"a9def55","cat":"triage","t":"fix: repair build and lint workflows","narr":"The <b>asdf-vm/actions/plugin-test@v4</b> action is red: asdf v0.20.0 removed the <code style='font-family:var(--mono)'>plugin test</code> subcommand it wraps. First repair pass — strip the action out of the Build job (−19 lines) and start hand-rolling the test steps, plus a small lint fix."},{"sha":"5c678b3","cat":"architecture","t":"Replace broken plugin-test action with manual asdf steps","narr":"Root cause confirmed and named in the commit message: <b>asdf v0.20.0 removed the plugin test subcommand</b>. Rebuild the job as explicit steps — download asdf, add the plugin, install herdr, verify."},{"sha":"cc1a16b","cat":"env","t":"Fix: pass tool_versions to asdf install action","narr":"Trying to keep the install action alive: it expects a <b>.tool-versions</b> file that doesn't exist in CI, so pass the tool versions explicitly."},{"sha":"3c9a5e4","cat":"env","t":"Use manual asdf setup instead of broken action","narr":"The action route is a dead end — <b>set up asdf manually</b> in the workflow: download the binary, wire the PATH, set the data dir."},{"sha":"a1cc5fe","cat":"source","t":"Fix: use correct asdf plugin URL","narr":"<code style='font-family:var(--mono)'>asdf plugin add</code> fails: the URL pointed at the tool's repo (<b>ogulcancelik/herdr</b>) instead of a plugin repo. Correct it to <b>RobLoach/asdf-herdr</b>."},{"sha":"fe57151","cat":"env","t":"Fix: use GITHUB_PATH for asdf binary path","narr":"PATH changes via <code style='font-family:var(--mono)'>.bashrc</code> don't survive between run steps in Actions. Append the asdf bin + shims dirs to <b>$GITHUB_PATH</b> instead."},{"sha":"9ec6a38","cat":"env","t":"Fix: set ASDF_DATA_DIR","narr":"Permission errors from asdf's data directory → pin <b>ASDF_DATA_DIR</b> to a workspace-local <code style='font-family:var(--mono)'>.asdf</code> directory."},{"sha":"1e9e378","cat":"version","t":"Use asdf v0.19.0 with plugin-test action","narr":"Fallback attempt: pin <b>asdf v0.19.0</b>, where <code style='font-family:var(--mono)'>plugin test</code> still exists (available in 0.17–0.19). Rewrite the workflow back toward the action shape (−18 lines)."},{"sha":"6a6f6fe","cat":"debug","t":"Add debug output to identify plugin add failure","narr":"Still failing at <code style='font-family:var(--mono)'>asdf plugin add</code>. Add a debug step (+28 lines) to pinpoint exactly where it breaks."},{"sha":"f55473a","cat":"shell","t":"Fix: use shell variables instead of GitHub Actions expressions","narr":"Inline <code style='font-family:var(--mono)'>${{ }}</code> expressions inside run scripts misbehave — switch to plain <b>shell variables</b>."},{"sha":"e93fbb8","cat":"version","t":"Use asdf binary release instead of git clone","narr":"Drop the git-clone asdf approach entirely; download the <b>official asdf binary release</b> tarball matching the runner's OS and arch."},{"sha":"4241fa5","cat":"version","t":"Simplify asdf binary download URL","narr":"Tidy the download into one clean release URL: <code style='font-family:var(--mono)'>asdf-v0.20.0-&lt;platform&gt;-&lt;arch&gt;.tar.gz</code>."},{"sha":"8f6a1dd","cat":"debug","t":"Add debug output to verify step","narr":"Instrument the final verify step: print PATH, <code style='font-family:var(--mono)'>which herdr</code>, and the shim listing before running herdr."},{"sha":"2f30fa6","cat":"version","t":"Fix CI: set herdr version and quote GITHUB_PATH","narr":"Pin the <b>herdr version</b> explicitly and quote the GITHUB_PATH appends so unexpected paths can't break them."},{"sha":"fafbe17","cat":"shell","t":"Fix: use correct asdf set command","narr":"The <code style='font-family:var(--mono)'>asdf set</code> invocation was wrong — correct the command syntax."},{"sha":"fb27281","cat":"shell","t":"Fix: quote asdf list output","narr":"Quote the <code style='font-family:var(--mono)'>asdf list</code> output so the shell can't word-split it."},{"sha":"3079ba0","cat":"version","t":"Fix: use hardcoded version for asdf set","narr":"Final pin: a <b>hardcoded 0.8.2</b> for <code style='font-family:var(--mono)'>asdf set</code>. The workflow is stable — <b>PR #4 merges to main</b> and the Build job passes end-to-end on ubuntu + macos."}],"pipeline":["Checkout","Download asdf v0.20.0","Setup GITHUB_PATH","Add herdr plugin","asdf install herdr 0.8.2","asdf set herdr 0.8.2","Verify: herdr --version"]};
+
+
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const PHASES=[
+ {id:0,key:"initial",name:"Day one",color:"#8494ab",when:"Jul 19",jump:"#changes",
+  desc:"A legacy-structure asdf plugin in one commit: download / install / list-all / latest-stable + shared utils. 311 lines, 12 files, CI attached."},
+ {id:1,key:"modernize",name:"Modernization",color:"#8b5cf6",when:"Aug 18",jump:"#changes",
+  desc:"Made the plugin native to asdf 0.17+: plugin.toml, bin/test + bin/info hooks, manual sorting deleted, env guards + optional checksums, PLAN.md, and a much stricter lint job."},
+ {id:2,key:"ci",name:"CI repair saga",color:"#22d3ee",when:"Aug 19",jump:"#saga",
+  desc:"asdf v0.20.0 removed the plugin test subcommand → the Build action went red. 17 fix commits across PR #2/#3/#4 rebuilt the workflow by hand. Merged to main."},
+ {id:3,key:"submit",name:"Going live",color:"#34d399",when:"Aug 20",jump:"#branches",
+  desc:"New branch pr-submission/asdf-plugins carries a 77-line script that stages herdr's entry in the official asdf-vm/asdf-plugins database and opens the PR."}
+];
+const MERGE={color:"#fbbf24",name:"Merges"};
+const C=c=>c.merge?MERGE.color:PHASES[c.phase].color;
+const CNAME=c=>c.merge?(c.pr?"Merge PR #"+c.pr:"merge"):PHASES[c.phase].name;
+const commits=DATA.commits;
+const totA=commits.reduce((s,c)=>s+c.adds,0), totD=commits.reduce((s,c)=>s+c.dels,0);
+const fileSet=new Set(); commits.forEach(c=>c.files.forEach(f=>fileSet.add(f[0])));
+const dayMap={}; commits.forEach(c=>{const d=c.date.slice(0,10);(dayMap[d]=dayMap[d]||[]).push(c);});
+const authors=new Set(commits.map(c=>c.author));
+const nMerges=commits.filter(c=>c.merge).length;
+const nPR=commits.filter(c=>c.merge&&c.pr).length;
+const dates=Object.keys(dayMap).sort();
+
+/* ---------- hero ---------- */
+$("#branchBadge").textContent="⎇ "+DATA.head.branch;
+$("#headPill").innerHTML="HEAD <b>"+DATA.head.sha+"</b> · "+DATA.head.date;
+const stats=[
+ {n:commits.length,l:"commits"},
+ {n:fileSet.size,l:"files touched"},
+ {n:totA,l:"lines added",pre:"+",cls:"plus"},
+ {n:totD,l:"lines removed",pre:"−",cls:"minus"},
+ {n:nPR,l:"PRs merged"},
+ {n:authors.size,l:"contributors"}
+];
+$("#statRow").innerHTML=stats.map((s,i)=>'<div class="stat reveal"><div class="n"><span class="'+(s.cls||"")+'" data-i="'+i+'">0</span></div><div class="l">'+s.l+'</div></div>').join("");
+function countUp(el,to,pre){const t0=performance.now(),dur=1000;
+ (function f(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=pre+Math.round(to*e).toLocaleString();if(p<1)requestAnimationFrame(f);})(t0);}
+let statsDone=false;
+new IntersectionObserver((es,o)=>{if(es[0].isIntersecting&&!statsDone){statsDone=true;
+ [...document.querySelectorAll("#statRow .n span")].forEach(el=>{const i=+el.dataset.i;countUp(el,stats[i].n,stats[i].pre||"");});o.disconnect();}},{threshold:.3}).observe($("#statRow"));
+
+/* ---------- phase cards ---------- */
+$("#phaseCards").innerHTML=PHASES.map(p=>{
+ const cs=commits.filter(c=>c.phase===p.id&&!c.merge);
+ const a=cs.reduce((s,c)=>s+c.adds,0),d=cs.reduce((s,c)=>s+c.dels,0);
+ const extra=p.id===2?'<span style="color:var(--amb)">3 PRs</span>':"";
+ return '<div class="phase reveal" data-jump="'+p.jump+'"><div class="bar" style="background:'+p.color+'"></div>'+
+ '<div class="ph-n">PHASE 0'+p.id+'</div><h3>'+p.name+'</h3><div class="when">'+p.when+" · "+cs.length+" commit"+(cs.length===1?"":"s")+'</div>'+
+ "<p>"+p.desc+'</p><div class="delta"><span class="a">+'+a+'</span><span class="d">−'+d+"</span>"+extra+"</div></div>";
+}).join("");
+document.querySelectorAll(".phase").forEach(el=>el.addEventListener("click",()=>location.hash=el.dataset.jump));
+
+/* ---------- tooltip ---------- */
+const tip=$("#tip");
+function showTip(html,x,y){tip.innerHTML=html;tip.style.opacity=1;
+ const r=tip.getBoundingClientRect();
+ tip.style.left=Math.min(innerWidth-r.width-12,x+14)+"px";
+ tip.style.top=Math.max(8,Math.min(innerHeight-r.height-8,y-r.height/2))+"px";}
+function hideTip(){tip.style.opacity=0;}
+
+/* ---------- heatmap ---------- */
+(function(){
+ const first=new Date(dates[0]+"T00:00:00Z"),last=new Date(dates[dates.length-1]+"T00:00:00Z");
+ const start=new Date(first);start.setUTCDate(start.getUTCDate()-start.getUTCDay());
+ const end=new Date(last);end.setUTCDate(end.getUTCDate()+(6-end.getUTCDay()));
+ let html="";const cur=new Date(start);
+ while(cur<=end){
+  const iso=cur.toISOString().slice(0,10),list=dayMap[iso]||[];
+  let lv=0;if(list.length>=1)lv=1;if(list.length>=3)lv=2;if(list.length>=8)lv=3;if(list.length>=15)lv=4;
+  html+='<div class="hc '+(lv?"l"+lv:"")+'" data-date="'+iso+'" data-n="'+list.length+'" data-list="'+esc(list.map(x=>x.sha+" "+x.subject).join(" · "))+'"></div>';
+  cur.setUTCDate(cur.getUTCDate()+1);
+ }
+ $("#heat").innerHTML=html;$("#heatL").textContent="Jul 2026";$("#heatR").textContent="Aug 2026";
+ const h=$("#heat");
+ h.addEventListener("mousemove",e=>{const t=e.target.closest(".hc");if(!t)return hideTip();
+  const d=new Date(t.dataset.date+"T00:00:00Z");
+  showTip("<b>"+d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})+"</b> · "+t.dataset.n+" commit"+(t.dataset.n===1?"":"s")+'<div class="tt">'+t.dataset.list+"</div>",e.clientX,e.clientY);});
+ h.addEventListener("mouseleave",hideTip);
+ h.addEventListener("click",e=>{const t=e.target.closest(".hc");if(!t||!t.dataset.n)return;
+  tlFilter="day:"+t.dataset.date;renderTL();document.querySelector("#timeline").scrollIntoView({behavior:"smooth"});});
+})();
+
+/* ---------- donut ---------- */
+(function(){
+ const groups=[
+  {label:"Initial plugin",color:PHASES[0].color,n:commits.filter(c=>c.phase===0&&!c.merge).length},
+  {label:"Modernization",color:PHASES[1].color,n:commits.filter(c=>c.phase===1&&!c.merge).length},
+  {label:"CI repair",color:PHASES[2].color,n:commits.filter(c=>c.phase===2&&!c.merge).length},
+  {label:"Submission prep",color:PHASES[3].color,n:commits.filter(c=>c.phase===3&&!c.merge).length},
+  {label:"Merge commits",color:MERGE.color,n:nMerges}
+ ].filter(g=>g.n);
+ const total=commits.length,r=54,cx=75,cy=75,circ=2*Math.PI*r;
+ let off=0,html='<g transform="rotate(-90 '+cx+' '+cy+')">';
+ groups.forEach((g,i)=>{const len=g.n/total*circ;
+  html+='<circle class="dseg" cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+g.color+'" stroke-width="17" stroke-dasharray="0 '+circ+'" data-len="'+(len-1.5)+' '+(circ-len+1.5)+'" transform="rotate('+(off/total*360)+' '+cx+' '+cy+')" style="transition:stroke-dasharray 1.1s ease '+(i*0.12)+'s"/>';
+  off+=g.n;});
+ html+="</g><text x='75' y='71' text-anchor='middle' fill='#e6edf7' font-size='26' font-weight='800' font-family='ui-monospace,monospace'>"+total+"</text><text x='75' y='90' text-anchor='middle' fill='#5f6c85' font-size='10' font-family='ui-monospace,monospace'>commits</text>";
+ $("#donut").innerHTML=html;
+ $("#legend").innerHTML=groups.map(g=>'<div class="li"><span class="dot" style="background:'+g.color+'"></span>'+g.label+"<b>"+g.n+"</b></div>").join("");
+ let donutDone=false;
+ new IntersectionObserver((es,o)=>{if(es[0].isIntersecting&&!donutDone){donutDone=true;
+  document.querySelectorAll(".dseg").forEach(s=>s.setAttribute("stroke-dasharray",s.dataset.len));o.disconnect();}},{threshold:.3}).observe($("#donut"));
+})();
+
+/* ---------- burst bars ---------- */
+(function(){
+ const max=Math.max(...dates.map(d=>dayMap[d].length));
+ $("#bars").innerHTML=dates.map(d=>{const n=dayMap[d].length;
+  return '<div class="bcol"><div class="bbar" data-h="'+(n/max*100)+'"><span>'+n+"</span></div><div class='dl'>"+d.slice(5).replace("-","/")+"</div></div>";}).join("");
+ let barsDone=false;
+ new IntersectionObserver((es,o)=>{if(es[0].isIntersecting&&!barsDone){barsDone=true;
+  document.querySelectorAll(".bbar").forEach(b=>b.style.height=Math.max(6,+b.dataset.h)+"%");o.disconnect();}},{threshold:.3}).observe($("#bars"));
+})();
+
+/* ---------- diff engine ---------- */
+function diffOps(a,b){
+ const n=a.length,m=b.length;
+ const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+ for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+ const ops=[];let i=0,j=0;
+ while(i<n&&j<m){
+  if(a[i]===b[j]){ops.push({t:"eq",a:a[i],b:b[j]});i++;j++;}
+  else if(dp[i+1][j]>=dp[i][j+1]){ops.push({t:"del",a:a[i]});i++;}
+  else{ops.push({t:"add",b:b[j]});j++;}
+ }
+ while(i<n)ops.push({t:"del",a:a[i++]});
+ while(j<m)ops.push({t:"add",b:b[j++]});
+ return ops;
+}
+function toRows(ops){
+ const rows=[];let i=0;
+ while(i<ops.length){
+  if(ops[i].t==="eq"){rows.push({t:"eq",l:ops[i].a,r:ops[i].b});i++;continue;}
+  const dels=[],adds=[];
+  while(i<ops.length&&ops[i].t==="del")dels.push(ops[i++].a);
+  while(i<ops.length&&ops[i].t==="add")adds.push(ops[i++].b);
+  const k=Math.max(dels.length,adds.length);
+  for(let x=0;x<k;x++)rows.push({t:(x<dels.length&&x<adds.length)?"both":(x<dels.length?"del":"add"),l:x<dels.length?dels[x]:null,r:x<adds.length?adds[x]:null});
+ }
+ return rows;
+}
+const diffState={file:DATA.files[0],mode:"split",ctx:"all"};
+function buildDiff(){
+ const f=diffState.file;
+ $("#dfn").textContent=f.path;
+ $("#dfa").textContent="+"+f.adds;$("#dfd").textContent="−"+f.dels;
+ $("#dftags").innerHTML=f.tags.map(t=>'<span class="tag '+(t.startsWith("+")?"new":"")+'">'+esc(t.replace(/^[+-]/,""))+"</span>").join("");
+ const body=$("#dbody");body.className="diff-body"+(diffState.mode==="uni"?" unified":"");
+ const A=f.old?f.old.split("\n"):[];
+ const B=(f.new||"").split("\n");
+ const rows=toRows(diffOps(A,B));
+ const keep=diffState.ctx==="all"?10:0;
+ const line=(cls,ln,tx)=>'<div class="drow '+cls+'"><span class="ln">'+ln+'</span><span class="lt">'+esc(tx)+'</span></div>';
+ const gapHalf=n=>'<div class="drow gap"><span class="ln"></span><span class="lt">··· '+n+" ···</span></div>";
+ let html;
+ if(diffState.mode==="uni"){
+  let l=0,r=0,run=0,eq=[];
+  const flush=()=>{
+   if(run>keep)html+=gapHalf(run);
+   else for(let x=0;x<run;x++)html+='<div class="urow"><span class="um"> </span><span class="ln">'+(++l)+'</span><span class="lt">'+esc(eq[x])+'</span></div>';
+   run=0;eq=[];
+  };
+  html="";
+  rows.forEach(rr=>{
+   if(rr.t==="eq"){run++;eq.push(rr.l);return;}
+   flush();
+   if(rr.l!==null)html+='<div class="urow del"><span class="um">−</span><span class="ln">'+(++l)+'</span><span class="lt">'+esc(rr.l)+'</span></div>';
+   if(rr.r!==null)html+='<div class="urow add"><span class="um">+</span><span class="ln">'+(++r)+'</span><span class="lt">'+esc(rr.r)+'</span></div>';
+  });
+  flush();
+ }else{
+  let l=0,r=0,run=0,eq=[];let colL="",colR="";
+  const flush2=()=>{
+   if(run>keep){colL+=gapHalf(run);colR+=gapHalf(run);}
+   else for(let x=0;x<run;x++){colL+=line("",""+(++l),eq[x]);colR+=line("",""+(++r),eq[x]);}
+   run=0;eq=[];
+  };
+  rows.forEach(rr=>{
+   if(rr.t==="eq"){run++;eq.push(rr.l);return;}
+   flush2();
+   if(rr.l!==null&&rr.r!==null){colL+=line("del",""+(++l),rr.l);colR+=line("add",""+(++r),rr.r);}
+   else if(rr.l!==null){colL+=line("del",""+(++l),rr.l);colR+=line("","·","");}
+   else{colR+=line("add",""+(++r),rr.r);colL+=line("","·","");}
+  });
+  flush2();
+  html='<div class="dcol"><div class="dh">before · '+(f.old?A.length:0)+" lines</div>"+colL+'</div><div class="dcol"><div class="dh">after · '+B.length+" lines</div>"+colR+"</div>";
+ }
+ body.innerHTML=html;
+}
+document.querySelectorAll("#dseg button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#dseg button").forEach(x=>x.classList.remove("on"));b.classList.add("on");diffState.mode=b.dataset.m;buildDiff();});
+document.querySelectorAll("#dctx button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#dctx button").forEach(x=>x.classList.remove("on"));b.classList.add("on");diffState.ctx=b.dataset.c;buildDiff();});
+
+/* ---------- file list ---------- */
+(function(){
+ DATA.files.forEach((f,i)=>{
+  const el=document.createElement("div");
+  el.className="fitem"+(i===0?" sel":"");
+  const pd=f.phases.map(p=>'<span class="dot" style="background:'+PHASES[p].color+'" title="'+PHASES[p].name+'"></span>').join("");
+  el.innerHTML='<div class="fn">'+pd+"<span>"+esc(f.path)+"</span></div><div class='fd'><span class='cnt a'>+"+f.adds+'</span><span class="cnt d">−'+f.dels+'</span><div class="fbar"><div class="fa" style="width:'+(f.adds/(f.adds+f.dels)*100)+'%"></div><div class="fdot" style="width:'+(f.dels/(f.adds+f.dels)*100)+'%"></div></div></div>';
+  el.onclick=()=>{diffState.file=f;document.querySelectorAll(".fitem").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");buildDiff();};
+  $("#flist").appendChild(el);
+ });
+ buildDiff();
+})();
+
+
+/* ---------- CI saga ---------- */
+const SAGA_CATS={
+ triage:{c:"#8494ab",n:"Triage"},
+ architecture:{c:"#8b5cf6",n:"Architecture"},
+ env:{c:"#60a5fa",n:"Environment"},
+ source:{c:"#fbbf24",n:"Plugin source"},
+ version:{c:"#34d399",n:"Version pinning"},
+ debug:{c:"#fb923c",n:"Debugging"},
+ shell:{c:"#f472b6",n:"Shell correctness"}
+};
+const SAGA=DATA.saga;
+let sagaIdx=0,sagaTimer=null;
+const bySha={};commits.forEach(c=>bySha[c.sha]=c);
+$("#catChips").innerHTML=Object.keys(SAGA_CATS).map(k=>'<span class="chip" data-cat="'+k+'" style="color:'+SAGA_CATS[k].c+';border-color:'+SAGA_CATS[k].c+'55">● '+SAGA_CATS[k].n+"</span>").join("");
+let activeCat=null;
+document.querySelectorAll("#catChips .chip").forEach(ch=>ch.onclick=()=>{
+ activeCat=activeCat===ch.dataset.cat?null:ch.dataset.cat;
+ document.querySelectorAll("#catChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.cat===activeCat));
+ renderPips();});
+function renderPips(){
+ $("#pips").innerHTML=SAGA.map((s,i)=>{
+  const dim=activeCat&&s.cat!==activeCat?" style='opacity:.3'":"";
+  return '<div class="pip '+(i===sagaIdx?"cur":"")+(i<sagaIdx?" done":"")+'" data-i="'+i+'" '+dim+'><span class="pn">'+(i<sagaIdx?"✓":(i+1))+'</span><span class="ps">'+esc(s.t)+"</span></div>";
+ }).join("");
+ document.querySelectorAll(".pip").forEach(p=>p.onclick=()=>{stopPlay();sagaIdx=+p.dataset.i;renderSaga();});
+}
+function renderSaga(){
+ const s=SAGA[sagaIdx];
+ const c=bySha[s.sha];
+ const cat=SAGA_CATS[s.cat];
+ const done=sagaIdx===SAGA.length-1;
+ $("#scard").innerHTML=
+  '<div class="sstep">STEP '+(sagaIdx+1)+" / "+SAGA.length+(s.prLabel?" · "+s.prLabel:"")+"</div>"+
+  '<span class="cat" style="color:'+cat.c+';border-color:'+cat.c+'66;background:'+cat.c+'14">'+cat.n+"</span>"+
+  "<h3>"+esc(s.t)+"</h3>"+
+  '<div class="smeta"><span style="color:var(--cyn)">'+c.sha+"</span><span>"+c.date.slice(5,16).replace("T"," ")+" UTC</span><span>by "+esc(c.author)+'</span><span style="color:var(--grn)">+'+c.adds+'</span><span style="color:var(--red)">−'+c.dels+"</span></div>"+
+  '<p class="narr">'+s.narr+"</p>"+
+  (done?'<div style="margin-top:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(52,211,153,.45);background:rgba(52,211,153,.08);font-size:13.5px"><b style="color:var(--grn)">✔ Workflow stable.</b> <span style="color:var(--tx2)">Merged to main via PR #4. The Build job now runs end-to-end on asdf 0.20.0 across ubuntu and macos:</span>'+
+   '<div class="finalpipe">'+DATA.pipeline.map((p,i)=>'<span class="pstep lit" style="transition-delay:'+(i*0.18)+'s">'+(i+1)+". "+p+"</span>").join("")+"</div></div>":"")+
+  '<div class="sprog"><div class="fill" style="width:'+((sagaIdx+1)/SAGA.length*100)+'%"></div></div>'+
+  '<div class="sctl"><button id="sprev">← prev</button><button class="play" id="splay">'+(sagaTimer?"❚❚ pause":"▶ play")+'</button><button id="snext">next →</button><span style="margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--tx3)">'+(done?"saga complete":"auto-advance 2.6s")+"</span></div>";
+ $("#sprev").onclick=()=>{stopPlay();sagaIdx=Math.max(0,sagaIdx-1);renderSaga();};
+ $("#snext").onclick=()=>{stopPlay();sagaIdx=Math.min(SAGA.length-1,sagaIdx+1);renderSaga();};
+ $("#splay").onclick=()=>{sagaTimer?stopPlay():startPlay();};
+ renderPips();
+}
+function startPlay(){sagaTimer=setInterval(()=>{if(sagaIdx>=SAGA.length-1){stopPlay();return;}sagaIdx++;renderSaga();},2600);renderSaga();}
+function stopPlay(){if(sagaTimer){clearInterval(sagaTimer);sagaTimer=null;}}
+let sagaStarted=false;
+new IntersectionObserver((es,o)=>{if(es[0].isIntersecting&&!sagaStarted){sagaStarted=true;renderSaga();o.disconnect();}},{threshold:.2}).observe($("#scard"));
+
+/* ---------- timeline ---------- */
+let tlFilter="all";
+const FILTERS=[
+ {k:"all",label:"All · "+commits.length,c:"#e6edf7"},
+ {k:"phase:1",label:"Modernization · 1",c:PHASES[1].color},
+ {k:"phase:2",label:"CI repair · 17",c:PHASES[2].color},
+ {k:"phase:3",label:"Submission · 1",c:PHASES[3].color},
+ {k:"merge",label:"Merges · "+nMerges,c:MERGE.color},
+ {k:"day:__none__",label:"Day filter",c:"#e6edf7"}
+];
+function renderFilters(){
+ $("#tlFilters").innerHTML=FILTERS.map(f=>'<span class="chip '+(tlFilter===f.k?"on":"")+'" data-f="'+f.k+'" style="'+(tlFilter===f.k?"color:"+f.c:"")+'">'+(tlFilter.startsWith("day:")&&f.k==="day:__none__"?f.label+" → "+tlFilter.slice(4):f.label)+"</span>").join("");
+ document.querySelectorAll("#tlFilters .chip").forEach(ch=>ch.onclick=()=>{
+  tlFilter=ch.dataset.f==="day:__none__"?"all":ch.dataset.f;renderTL();});
+}
+function tlMatch(c){
+ if(tlFilter==="all")return true;
+ if(tlFilter==="merge")return c.merge;
+ if(tlFilter.startsWith("phase:"))return !c.merge&&c.phase===+tlFilter.slice(6);
+ if(tlFilter.startsWith("day:"))return c.date.slice(0,10)===tlFilter.slice(4);
+ return true;
+}
+let tlSel=null;
+function renderTL(){
+ renderFilters();
+ const list=commits.filter(tlMatch);
+ $("#tl").innerHTML=list.map(c=>{
+  const col=C(c);
+  return '<div class="titem '+(tlSel===c.sha?"sel":"")+'" data-sha="'+c.sha+'"><span class="tdot" style="background:'+col+'"></span>'+
+  '<div class="trow"><span class="tsha">'+c.sha+"</span><span>"+c.date.slice(5,16).replace("T"," ")+" UTC</span><span>· "+esc(c.author)+'</span><span class="tcnt cnt a">+'+c.adds+'</span><span class="cnt d">−'+c.dels+"</span>"+
+  (c.pr?'<span class="tag" style="color:var(--amb);border-color:rgba(251,191,36,.4)">PR #'+c.pr+"</span>":"")+"</div>"+
+  '<div class="tsubj">'+esc(c.subject)+"</div></div>";
+ }).join("")||'<div style="color:var(--tx3);font-size:13px;padding:20px">No commits match this filter.</div>';
+ document.querySelectorAll(".titem").forEach(el=>el.onclick=()=>{tlSel=el.dataset.sha;renderTL();renderDetail(tlSel);});
+ if(tlSel&&bySha[tlSel])renderDetail(tlSel);
+}
+function renderDetail(sha){
+ const c=bySha[sha];if(!c)return;
+ const maxF=Math.max(...c.files.map(f=>Math.max(f[1],f[2])),1);
+ $("#tdetail").innerHTML='<h3>'+esc(c.subject)+"</h3>"+
+ '<div class="m"><span style="color:'+C(c)+'">● '+CNAME(c)+'</span><span>'+c.date.slice(0,16).replace("T"," ")+" UTC</span><span>"+esc(c.author)+"</span></div>"+
+ '<div class="m" style="margin-top:-6px"><span style="color:var(--cyn)">'+c.sha+'</span><span style="color:var(--grn)">+'+c.adds+'</span><span style="color:var(--red)">−'+c.dels+"</span><span>"+c.files.length+" file"+(c.files.length===1?"":"s")+"</span></div>"+
+ c.files.map(f=>'<div class="fline"><div class="fr"><span>'+esc(f[0])+'</span><span><b style="color:var(--grn)">+'+f[1]+'</b> <b style="color:var(--red)">−'+f[2]+"</b></span></div>"+
+  '<div class="fb"><div class="fa" style="width:'+(f[1]/maxF*100)+'%"></div><div class="fdot" style="width:'+(f[2]/maxF*100)+'%"></div></div></div>').join("")+
+ (c.merge?'<p style="margin-top:14px;font-size:12.5px;color:var(--tx3)">Merge commit — no direct file changes; brings the branch into main.</p>':"");
+}
+renderTL();
+tlSel=commits[commits.length-1].sha;renderTL();
+
+/* ---------- branch topology ---------- */
+(function(){
+ const svg=$("#bsvg");
+ const main=[
+  {x:70,sha:"6ff98d8",y:170},
+  {x:210,sha:"4195b19",y:170},
+  {x:350,sha:"8a4ae46",y:170},
+  {x:490,sha:"14dc866",y:170},
+  {x:660,sha:"3ca217c",y:170},
+  {x:830,sha:"3ba8a5b",y:170,head:true}
+ ];
+ let s="";
+ s+='<line x1="70" y1="170" x2="660" y2="170" stroke="rgba(230,237,247,.28)" stroke-width="2.5"/>';
+ s+='<line x1="660" y1="170" x2="830" y2="170" stroke="rgba(52,211,153,.65)" stroke-width="2.5"/>';
+ // PR #2 arc
+ s+='<path d="M 250 66 Q 300 66 350 170" fill="none" stroke="rgba(251,191,36,.55)" stroke-width="1.8" stroke-dasharray="4 4"/>';
+ s+='<text x="252" y="52" class="blab">PR #2 · fix/workflow-repair</text>';
+ // PR #3 arc
+ s+='<path d="M 400 66 Q 450 66 490 170" fill="none" stroke="rgba(251,191,36,.55)" stroke-width="1.8" stroke-dasharray="4 4"/>';
+ s+='<text x="392" y="40" class="blab">PR #3</text>';
+ // PR #4 long arc
+ s+='<path d="M 300 268 Q 480 292 660 170" fill="none" stroke="rgba(34,211,238,.6)" stroke-width="1.8" stroke-dasharray="4 4"/>';
+ s+='<text x="392" y="292" class="blab" fill="#22d3ee">PR #4 · fix/workflow-repair-v2 (16 commits)</text>';
+ const v2shas=commits.filter(c=>c.phase===2&&!c.merge).map(c=>c.sha);
+ v2shas.forEach((sh,i)=>{
+  const t=(i+1)/v2shas.length;
+  const x=300+(660-300)*t;
+  const y=268+(170-268)*t*t*0.9+ (1-t)*0; // approximate quadratic
+  s+='<circle cx="'+x+'" cy="'+(268-(268-170)*Math.pow(t,1.6))+'" r="4.5" fill="#22d3ee" opacity=".85" class="bnode" data-sha="'+sh+'"/>';
+ });
+ // branch labels
+ s+='<text x="60" y="158" class="blab" fill="#e6edf7">main</text>';
+ s+='<text x="700" y="156" class="blab" fill="#34d399">pr-submission/asdf-plugins</text>';
+ s+='<text x="30" y="322" class="blab" style="opacity:.7">schematic — v2 branch commits placed proportionally; PR #2/#3 arcs approximate</text>';
+ // nodes
+ main.forEach(n=>{
+  const c=bySha[n.sha];
+  const col=n.head?"#34d399":"#e6edf7";
+  s+='<g class="bnode" data-sha="'+n.sha+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+(n.head?8:6)+'" fill="'+col+'" stroke="#070b14" stroke-width="2.5"/>'+
+  '<text x="'+n.x+'" y="'+(n.y+(n.head?26:24))+'" text-anchor="middle" style="'+(n.head?"fill:#34d399":"")+'">'+n.sha+"</text></g>";
+ });
+ // head badge
+ s+='<g><rect x="796" y="118" rx="9" width="68" height="20" fill="rgba(52,211,153,.15)" stroke="rgba(52,211,153,.5)"/><text x="830" y="132" text-anchor="middle" fill="#34d399" font-size="10.5" font-family="ui-monospace,monospace">HEAD</text></g>';
+ svg.innerHTML=s;
+ svg.addEventListener("mousemove",e=>{
+  const t=e.target.closest(".bnode");if(!t)return hideTip();
+  const c=bySha[t.dataset.sha];
+  showTip("<b>"+c.sha+"</b> · "+c.date.slice(0,16).replace("T"," ")+" UTC<div class='tt'>"+esc(c.subject)+"</div>",e.clientX,e.clientY);});
+ svg.addEventListener("mouseleave",hideTip);
+})();
+
+/* ---------- takeaways ---------- */
+(function(){
+ const cards=[
+ {ic:"🧩",t:"It's now genuinely asdf 0.17+ native",p:"plugin.toml (required by the standalone asdf binary), post-install bin/test validation, bin/info introspection, and the legacy sort_versions pipeline deleted — asdf sorts versions itself now."},
+ {ic:"🛡️",t:"Hardened by default",p:"Every bin/ script guards its environment with clear fail() messages, the download checks for empty binaries and supports optional SHA‑256 verification, and a new CI job enforces plugin.toml presence, executable scripts and valid TOML."},
+ {ic:"🔧",t:"CI proves it works end-to-end",p:"When asdf 0.20.0 deleted the plugin test subcommand, 17 fix commits across PR #2/#3/#4 rebuilt the Build job from scratch: manual asdf 0.20.0 setup on ubuntu + macos, install herdr 0.8.2, verify with herdr --version. All merged to main."},
+ {ic:"📈",t:"A fast, tight loop",p:"4 active days, 20 commits in a single day (17 fixes + 3 merges), 3 PRs, 2 contributors (human + DSH Agent). The repo went from untested legacy structure to fully modernized and CI-verified in ~4 weeks."},
+ {ic:"🚀",t:"What's next: the official plugin index",cls:"next",p:"Branch pr-submission/asdf-plugins carries scripts/submit-to-asdf-plugins.sh — clone your fork, add plugins/herdr, insert the README table row (alphabetically between heroku-cli and hey), prettier, run test_plugin.bash, open the PR to asdf-vm/asdf-plugins. One green run and herdr is officially listed."},
+ ];
+ $("#takeaways").innerHTML=cards.map(c=>'<div class="tkcard '+(c.cls||"")+' reveal"><span class="ic">'+c.ic+"</span><h3>"+c.t+"</h3><p>"+c.p+"</p></div>").join("");
+})();
+
+/* ---------- nav + reveal ---------- */
+document.querySelectorAll(".reveal").forEach(el=>{
+ new IntersectionObserver((es,o)=>{if(es[0].isIntersecting){el.classList.add("in");o.disconnect();}},{threshold:.12}).observe(el);});
+const secs=[...document.querySelectorAll("main section")];
+const navA=[...document.querySelectorAll(".nav-links a")];
+new IntersectionObserver(es=>{
+ es.forEach(e=>{if(e.isIntersecting){
+  navA.forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id));}});
+},{rootMargin:"-30% 0px -60% 0px"}).observe&&secs.forEach(s=>{
+ new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)navA.forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+e.target.id));});},{rootMargin:"-35% 0px -55% 0px"}).observe(s);});
+$("#ft1").textContent="generated from git history · /home/node/asdf-herdr";
+$("#ft2").textContent="HEAD "+DATA.head.sha+" · "+DATA.head.date+" · "+commits.length+" commits · +"+totA+"/−"+totD+" · "+fileSet.size+" files";
+
+</script>
+</body></html>
