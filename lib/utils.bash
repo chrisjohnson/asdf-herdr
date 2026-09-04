@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-GH_REPO="https://github.com/ogulcancelik/herdr"
+GH_REPO="https://github.com/herdrdev/herdr"
 TOOL_NAME="herdr"
 TOOL_TEST="herdr --version"
 

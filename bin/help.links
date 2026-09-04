@@ -4,6 +4,6 @@ set -euo pipefail
 
 cat <<'EOF'
 Homepage: https://herdr.dev
-Source: https://github.com/ogulcancelik/herdr
-Releases: https://github.com/ogulcancelik/herdr/releases
+Source: https://github.com/herdrdev/herdr
+Releases: https://github.com/herdrdev/herdr/releases
 EOF
